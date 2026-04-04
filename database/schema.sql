@@ -1,0 +1,1 @@
+-- TODO (Vedant): Full database schema — profiles, circles, circle_members, risk_surveys, emergency_pools, pool_contributions, fund_requests, fund_votes, crisis_sessions

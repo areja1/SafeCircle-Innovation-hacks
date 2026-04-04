@@ -1,0 +1,1 @@
+-- TODO (Vedant): Supabase Realtime subscriptions setup (emergency pool balance, fund request votes)

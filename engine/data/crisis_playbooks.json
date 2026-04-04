@@ -1,3 +1,419 @@
 {
-  "_comment": "TODO (Sumedh): All crisis types with triage steps — car_accident, job_loss, medical_emergency, death_in_family, home_damage"
+  "general": {
+    "crisis_type": "general",
+    "dont_sign_warning": "In any crisis, do not sign documents you don't understand. Ask for time to review them.",
+    "estimated_total_savings": 100,
+    "steps": [
+      {
+        "id": "gen_1",
+        "priority": "yellow",
+        "time_window": "0-24 hours",
+        "title": "Identify the Core Problem",
+        "description": "Take a moment to write down exactly what happened and what the immediate financial impact is. This helps clarify your next steps.",
+        "why_it_matters": "A clear head leads to better decisions.",
+        "cost_of_not_doing": 100,
+        "deadline_hours": null
+      },
+      {
+        "id": "gen_2",
+        "priority": "yellow",
+        "time_window": "0-24 hours",
+        "title": "Check for Available Benefits",
+        "description": "Use the Benefits section of the app to see if your change in circumstances makes you eligible for new assistance.",
+        "why_it_matters": "You may be eligible for aid that can provide immediate relief.",
+        "cost_of_not_doing": 500,
+        "deadline_hours": null,
+        "state_specific_key": "snap_url"
+      }
+    ]
+  },
+  "car_accident": {
+    "crisis_type": "car_accident",
+    "dont_sign_warning": "Do NOT accept any settlement offer or sign any documents from the insurance company for at least 14 days. First offers are typically 40% below fair value.",
+    "estimated_total_savings": 15000,
+    "steps": [
+      {
+        "id": "ca_1",
+        "priority": "red",
+        "time_window": "0-4 hours",
+        "title": "Get medical attention NOW",
+        "description": "Go to a doctor or urgent care within 24 hours even if you feel fine. Adrenaline hides injuries. Waiting longer gives insurance companies reason to reduce your claim by 50%.",
+        "why_it_matters": "Delayed treatment = reduced or denied medical claims",
+        "cost_of_not_doing": 25000,
+        "deadline_hours": 24
+      },
+      {
+        "id": "ca_2",
+        "priority": "red",
+        "time_window": "0-4 hours",
+        "title": "Document EVERYTHING at the scene",
+        "description": "Take at least 20 photos: damage to all vehicles, license plates, road conditions, traffic signs, injuries. Get the other driver's insurance info. Get witness names and phone numbers.",
+        "why_it_matters": "No documentation = no proof = claim denied",
+        "cost_of_not_doing": 10000,
+        "deadline_hours": 4
+      },
+      {
+        "id": "ca_3",
+        "priority": "red",
+        "time_window": "0-4 hours",
+        "title": "Do NOT give a recorded statement",
+        "description": "The other driver's insurance company may call you within hours. Be polite but say: 'I am not ready to give a statement at this time.' Anything you say can be used to reduce your claim.",
+        "why_it_matters": "Recorded statements while stressed are used against you",
+        "cost_of_not_doing": 5000,
+        "deadline_hours": null
+      },
+      {
+        "id": "ca_4",
+        "priority": "orange",
+        "time_window": "4-24 hours",
+        "title": "Report to YOUR insurance company",
+        "description": "Call your own insurance company and report the accident. Most policies require notification within 24-72 hours. Just report facts — don't admit fault or speculate.",
+        "why_it_matters": "Late reporting can void your coverage",
+        "cost_of_not_doing": 8000,
+        "deadline_hours": 72,
+        "state_specific_key": "insurance_dept_url"
+      },
+      {
+        "id": "ca_5",
+        "priority": "orange",
+        "time_window": "4-24 hours",
+        "title": "If you drive for gig apps — check your coverage",
+        "description": "Were you on a delivery or ride when the accident happened? Your personal insurance may deny the claim. Check if you have a rideshare endorsement. If not, the platform's insurance may cover you during active deliveries but with a $2,500 deductible.",
+        "why_it_matters": "Gig drivers often discover coverage gaps AFTER an accident",
+        "cost_of_not_doing": 8000,
+        "deadline_hours": 48
+      },
+      {
+        "id": "ca_6",
+        "priority": "yellow",
+        "time_window": "24-72 hours",
+        "title": "Get a repair estimate from YOUR mechanic",
+        "description": "Don't just accept the insurance company's estimate. Get your own from an independent mechanic. Insurance estimates are often 20-30% lower.",
+        "why_it_matters": "Insurance lowballs repair costs",
+        "cost_of_not_doing": 3000,
+        "deadline_hours": 168
+      },
+      {
+        "id": "ca_7",
+        "priority": "yellow",
+        "time_window": "24-72 hours",
+        "title": "Track ALL expenses and lost income",
+        "description": "Start a log right now: medical bills, prescriptions, Uber/Lyft to work, missed work days, childcare. Everything. These are all part of your claim.",
+        "why_it_matters": "Unreported expenses = unreimbursed costs",
+        "cost_of_not_doing": 5000,
+        "deadline_hours": null
+      },
+      {
+        "id": "ca_8",
+        "priority": "green",
+        "time_window": "1-4 weeks",
+        "title": "NOW consider the settlement offer",
+        "description": "Only after you know your full medical costs, repair costs, and lost income should you evaluate any settlement. The first offer is almost always too low. You can negotiate or consult a free attorney.",
+        "why_it_matters": "Early settlements are 40% below fair value on average",
+        "cost_of_not_doing": 12000,
+        "deadline_hours": null
+      }
+    ]
+  },
+  "job_loss": {
+    "crisis_type": "job_loss",
+    "dont_sign_warning": "Do NOT sign a severance agreement without reading it carefully. You usually have 21 days (40+ if over age 40) to review. Signing early may waive important rights.",
+    "estimated_total_savings": 12000,
+    "steps": [
+      {
+        "id": "jl_1",
+        "priority": "red",
+        "time_window": "0-4 hours",
+        "title": "File for unemployment TODAY",
+        "description": "Do not wait. The first week is an unpaid 'waiting week' in most states — it starts when you FILE, not when you lost your job. Every week you delay is $200-$600 lost FOREVER.",
+        "why_it_matters": "Delayed filing = permanently lost benefits",
+        "cost_of_not_doing": 600,
+        "deadline_hours": 168,
+        "state_specific_key": "unemployment_url"
+      },
+      {
+        "id": "jl_2",
+        "priority": "red",
+        "time_window": "0-4 hours",
+        "title": "Check your health insurance options",
+        "description": "You have 60 days to elect COBRA (keeps your current plan but you pay full cost ~$600/month). OR you may qualify for a cheaper marketplace plan or Medicaid. Compare before choosing.",
+        "why_it_matters": "Missing the 60-day COBRA window = no coverage option",
+        "cost_of_not_doing": 14400,
+        "deadline_hours": 1440
+      },
+      {
+        "id": "jl_3",
+        "priority": "orange",
+        "time_window": "4-24 hours",
+        "title": "Use your FSA/HSA money NOW",
+        "description": "Flexible Spending Account money expires 60 days after job loss. Schedule any medical appointments, buy glasses, fill prescriptions. HSA money is yours to keep.",
+        "why_it_matters": "FSA funds are use-it-or-lose-it",
+        "cost_of_not_doing": 2700,
+        "deadline_hours": 1440
+      },
+      {
+        "id": "jl_4",
+        "priority": "orange",
+        "time_window": "4-24 hours",
+        "title": "Do NOT touch your 401(k)",
+        "description": "Cashing out your 401(k) costs you 30-40% in taxes and penalties. You can leave it where it is, roll it to an IRA, or roll it to your next employer's plan. There is no rush.",
+        "why_it_matters": "Early withdrawal penalties destroy retirement savings",
+        "cost_of_not_doing": 10000,
+        "deadline_hours": null
+      },
+      {
+        "id": "jl_5",
+        "priority": "yellow",
+        "time_window": "24-72 hours",
+        "title": "Check for benefits you now qualify for",
+        "description": "With reduced/no income, you may now qualify for: SNAP (food assistance), Medicaid, LIHEAP (utility help), reduced school lunch for kids. Apply now — processing takes 2-4 weeks.",
+        "why_it_matters": "Benefits exist but you have to apply",
+        "cost_of_not_doing": 5000,
+        "deadline_hours": null,
+        "state_specific_key": "snap_url"
+      },
+      {
+        "id": "jl_6",
+        "priority": "yellow",
+        "time_window": "24-72 hours",
+        "title": "Contact all creditors BEFORE you miss payments",
+        "description": "Call your landlord, car loan, credit cards. Say: 'I just lost my job and want to discuss hardship options.' Most have forbearance or deferral programs — but only if you ask BEFORE missing a payment.",
+        "why_it_matters": "Proactive contact prevents late fees and credit damage",
+        "cost_of_not_doing": 3000,
+        "deadline_hours": 720
+      },
+      {
+        "id": "jl_7",
+        "priority": "green",
+        "time_window": "1-4 weeks",
+        "title": "Review your severance agreement carefully",
+        "description": "If offered severance, you typically have 21 days to review (40+ days if over age 40). Check if it waives your right to sue, non-compete clauses, and whether you can negotiate.",
+        "why_it_matters": "Signing too fast may waive rights worth thousands",
+        "cost_of_not_doing": 5000,
+        "deadline_hours": null
+      }
+    ]
+  },
+  "medical_emergency": {
+    "crisis_type": "medical_emergency",
+    "dont_sign_warning": "Do NOT put medical bills on a credit card. This eliminates your negotiation leverage and the interest doubles the cost. Ask for a payment plan first.",
+    "estimated_total_savings": 8000,
+    "steps": [
+      {
+        "id": "me_1",
+        "priority": "red",
+        "time_window": "0-4 hours",
+        "title": "Get treated — worry about money later",
+        "description": "ERs must treat you regardless of ability to pay (EMTALA law). Do NOT avoid the ER because of cost. An untreated injury costs 10x more later.",
+        "why_it_matters": "Delayed treatment worsens outcomes and costs",
+        "cost_of_not_doing": 50000,
+        "deadline_hours": null
+      },
+      {
+        "id": "me_2",
+        "priority": "orange",
+        "time_window": "4-24 hours",
+        "title": "Request an itemized bill",
+        "description": "80% of hospital bills have errors averaging $1,300. Ask for a detailed line-by-line itemized bill — not just the summary. Compare charges to fair prices at fairhealthconsumer.org.",
+        "why_it_matters": "Most bills contain overcharges you can dispute",
+        "cost_of_not_doing": 1300,
+        "deadline_hours": 168
+      },
+      {
+        "id": "me_3",
+        "priority": "orange",
+        "time_window": "4-24 hours",
+        "title": "Notify your insurance company",
+        "description": "Call your insurance within 24-48 hours. Get a claim number. Ask if the hospital and doctors were in-network. If out-of-network, you may be protected by the No Surprises Act.",
+        "why_it_matters": "Late notification can result in claim denial",
+        "cost_of_not_doing": 5000,
+        "deadline_hours": 48
+      },
+      {
+        "id": "me_4",
+        "priority": "yellow",
+        "time_window": "24-72 hours",
+        "title": "Apply for charity care / financial assistance",
+        "description": "Non-profit hospitals MUST offer financial assistance programs. Many reduce bills by 50-80% for people under certain income levels. Ask the billing department for their Financial Assistance Application.",
+        "why_it_matters": "Huge discounts available but you must ask",
+        "cost_of_not_doing": 4000,
+        "deadline_hours": 2160
+      },
+      {
+        "id": "me_5",
+        "priority": "yellow",
+        "time_window": "24-72 hours",
+        "title": "Check if No Surprises Act applies",
+        "description": "If you went to an in-network hospital but were treated by an out-of-network doctor (common with anesthesiologists, radiologists), the No Surprises Act protects you. Dispute within 30 days.",
+        "why_it_matters": "Surprise bills can be disputed and reduced",
+        "cost_of_not_doing": 3000,
+        "deadline_hours": 720
+      },
+      {
+        "id": "me_6",
+        "priority": "green",
+        "time_window": "1-4 weeks",
+        "title": "Negotiate or set up a payment plan",
+        "description": "Hospitals almost always accept payment plans with 0% interest. Ask for one BEFORE paying anything. Many will also reduce the bill 20-40% if you ask to pay a lump sum.",
+        "why_it_matters": "Never pay full sticker price without negotiating",
+        "cost_of_not_doing": 2000,
+        "deadline_hours": null
+      }
+    ]
+  },
+  "death_in_family": {
+    "crisis_type": "death_in_family",
+    "dont_sign_warning": "Do NOT make any major financial decisions for at least 2 weeks. Grief impairs judgment. Do NOT let funeral homes pressure you into expensive packages — you can negotiate everything.",
+    "estimated_total_savings": 10000,
+    "steps": [
+      {
+        "id": "df_1",
+        "priority": "red",
+        "time_window": "0-4 hours",
+        "title": "Freeze credit immediately",
+        "description": "Identity thieves monitor obituaries and strike within days. Freeze the deceased person's credit at all 3 bureaus: Equifax (888-298-0045), Experian (888-397-3742), TransUnion (800-680-7289).",
+        "why_it_matters": "Identity theft of deceased costs families $5,000-$15,000",
+        "cost_of_not_doing": 10000,
+        "deadline_hours": 48
+      },
+      {
+        "id": "df_2",
+        "priority": "red",
+        "time_window": "0-4 hours",
+        "title": "Order 10-12 death certificates",
+        "description": "You'll need them for insurance claims, bank accounts, property transfers. Order now when they cost $10-20 each. Ordering later costs $25-50 each. You always need more than you think.",
+        "why_it_matters": "Insufficient copies = costly reorders and delays",
+        "cost_of_not_doing": 500,
+        "deadline_hours": 168
+      },
+      {
+        "id": "df_3",
+        "priority": "orange",
+        "time_window": "4-24 hours",
+        "title": "Notify Social Security",
+        "description": "Call SSA at 800-772-1213. Any benefits received after date of death must be returned — the sooner you notify, the less you owe back. Ask about survivor benefits you may qualify for.",
+        "why_it_matters": "Unreturned benefits create legal obligation",
+        "cost_of_not_doing": 2000,
+        "deadline_hours": 168
+      },
+      {
+        "id": "df_4",
+        "priority": "orange",
+        "time_window": "4-24 hours",
+        "title": "Secure the home and finances",
+        "description": "Lock the house. Secure valuables. Forward mail. Do NOT distribute any property yet — wait for legal guidance. Change passwords on shared accounts.",
+        "why_it_matters": "Unsecured property invites theft and disputes",
+        "cost_of_not_doing": 5000,
+        "deadline_hours": 48
+      },
+      {
+        "id": "df_5",
+        "priority": "yellow",
+        "time_window": "24-72 hours",
+        "title": "Find life insurance policies",
+        "description": "Check: employer benefits, personal policies, mortgage insurance, credit card insurance, veterans benefits. Many people have policies they forgot about. Search NAIC Life Insurance Policy Locator.",
+        "why_it_matters": "Unclaimed life insurance totals billions nationally",
+        "cost_of_not_doing": 50000,
+        "deadline_hours": null
+      },
+      {
+        "id": "df_6",
+        "priority": "yellow",
+        "time_window": "24-72 hours",
+        "title": "Don't rush funeral decisions",
+        "description": "Average funeral costs $8,300. You can negotiate everything. Get quotes from 3+ funeral homes. Ask about direct cremation ($1,000-$3,000) vs full service ($7,000-$12,000). The FTC Funeral Rule requires itemized pricing.",
+        "why_it_matters": "Grief-driven decisions add $2,000-$5,000 in costs",
+        "cost_of_not_doing": 3000,
+        "deadline_hours": null
+      },
+      {
+        "id": "df_7",
+        "priority": "green",
+        "time_window": "1-4 weeks",
+        "title": "Consult a probate attorney for free",
+        "description": "Many attorneys offer free initial consultations. You need guidance on: will execution, property transfer, tax obligations, and creditor claims. Don't try to DIY probate.",
+        "why_it_matters": "Probate mistakes are expensive and permanent",
+        "cost_of_not_doing": 5000,
+        "deadline_hours": null
+      }
+    ]
+  },
+  "home_damage": {
+    "crisis_type": "home_damage",
+    "dont_sign_warning": "Do NOT hire a contractor or start major repairs until your insurance company has inspected the damage. Do NOT throw away damaged items before photographing them.",
+    "estimated_total_savings": 25000,
+    "steps": [
+      {
+        "id": "hd_1",
+        "priority": "red",
+        "time_window": "0-4 hours",
+        "title": "PHOTOGRAPH everything BEFORE cleanup",
+        "description": "Take 50+ photos and videos of ALL damage. Every room, every item, every angle. Cleaning up before documenting = your insurance claim gets denied. This is the #1 most expensive mistake.",
+        "why_it_matters": "No documentation = no claim = $50,000+ denial",
+        "cost_of_not_doing": 50000,
+        "deadline_hours": 24
+      },
+      {
+        "id": "hd_2",
+        "priority": "red",
+        "time_window": "0-4 hours",
+        "title": "Prevent further damage",
+        "description": "Tarp the roof, board broken windows, turn off water if pipes burst. SAVE ALL RECEIPTS for emergency supplies. Your insurance covers these emergency repairs.",
+        "why_it_matters": "Insurance requires you to mitigate further damage",
+        "cost_of_not_doing": 10000,
+        "deadline_hours": 24
+      },
+      {
+        "id": "hd_3",
+        "priority": "orange",
+        "time_window": "4-24 hours",
+        "title": "File insurance claim immediately",
+        "description": "Call your insurance company. Get a claim number. Ask about: Additional Living Expenses (hotel, food while displaced), emergency advance payments, and the claim timeline.",
+        "why_it_matters": "Most policies have 30-60 day filing deadlines",
+        "cost_of_not_doing": 25000,
+        "deadline_hours": 720,
+        "state_specific_key": "insurance_dept_url"
+      },
+      {
+        "id": "hd_4",
+        "priority": "orange",
+        "time_window": "4-24 hours",
+        "title": "Contact your landlord or mortgage company",
+        "description": "Renters: your landlord's insurance does NOT cover your belongings. Homeowners: contact your mortgage servicer about forbearance if you can't make payments while displaced.",
+        "why_it_matters": "Mortgage forbearance must be requested proactively",
+        "cost_of_not_doing": 5000,
+        "deadline_hours": 168
+      },
+      {
+        "id": "hd_5",
+        "priority": "yellow",
+        "time_window": "24-72 hours",
+        "title": "Apply for FEMA assistance",
+        "description": "If this is a declared disaster, apply at DisasterAssistance.gov or call 800-621-3362. Deadline is typically 60 days from disaster declaration. FEMA grants don't need to be repaid.",
+        "why_it_matters": "FEMA grants range $5,000-$30,000+",
+        "cost_of_not_doing": 15000,
+        "deadline_hours": 1440
+      },
+      {
+        "id": "hd_6",
+        "priority": "yellow",
+        "time_window": "24-72 hours",
+        "title": "Do NOT hire contractors yet",
+        "description": "Wait until your insurance adjuster inspects the damage. Getting your own repair estimate is fine, but DO NOT sign contracts or make deposits until the claim is processed. Scam contractors target disaster areas.",
+        "why_it_matters": "Premature repairs = claim denial + contractor fraud",
+        "cost_of_not_doing": 15000,
+        "deadline_hours": null
+      },
+      {
+        "id": "hd_7",
+        "priority": "green",
+        "time_window": "1-4 weeks",
+        "title": "Get your own damage estimate",
+        "description": "Insurance company estimates are often 20-40% lower than actual repair costs. Get 2-3 independent estimates. If there's a big gap, you can hire a public adjuster (typically 10% fee) to negotiate.",
+        "why_it_matters": "Independent estimates ensure fair settlement",
+        "cost_of_not_doing": 10000,
+        "deadline_hours": null
+      }
+    ]
+  }
 }

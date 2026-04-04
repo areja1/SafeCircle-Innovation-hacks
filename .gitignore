@@ -5,6 +5,9 @@
 # Implementation doc (internal only — do NOT commit)
 safecircle-implementation.md
 
+# Abhinav personal backend backlog (local checklist — do NOT commit)
+backend/TODO_ABHINAV.md
+
 # ---- Python / Backend ----
 __pycache__/
 *.py[cod]

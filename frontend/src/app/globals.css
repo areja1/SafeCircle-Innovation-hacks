@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 215 25% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 17%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 215 25% 17%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-[#F8FAFC] text-[#1E293B] antialiased;
+  }
+}
+
+@layer components {
+  .risk-score-critical {
+    @apply text-red-600 bg-red-50 border-red-200;
+  }
+  .risk-score-moderate {
+    @apply text-amber-600 bg-amber-50 border-amber-200;
+  }
+  .risk-score-safe {
+    @apply text-green-600 bg-green-50 border-green-200;
+  }
+
+  .crisis-red {
+    @apply border-l-4 border-red-500 bg-red-50;
+  }
+  .crisis-orange {
+    @apply border-l-4 border-orange-400 bg-orange-50;
+  }
+  .crisis-yellow {
+    @apply border-l-4 border-amber-400 bg-amber-50;
+  }
+  .crisis-green {
+    @apply border-l-4 border-green-500 bg-green-50;
+  }
+}
+
+/* Pulse animation for urgent crisis items */
+@keyframes urgentPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
+.urgent-pulse {
+  animation: urgentPulse 2s ease-in-out infinite;
+}

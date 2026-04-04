@@ -1,0 +1,13 @@
+# SafeCircle — copy values into local files only (never commit real keys).
+# Backend: .env   |   Frontend: frontend/.env.local
+# Both paths are gitignored.
+
+SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+SUPABASE_ANON_KEY=replace-with-anon-key
+SUPABASE_SERVICE_ROLE_KEY=replace-with-service-role-key
+
+ANTHROPIC_API_KEY=sk-ant-api03-replace
+
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=replace-with-anon-key
+NEXT_PUBLIC_API_URL=http://localhost:8000

@@ -11,9 +11,10 @@ import VoteCard from '@/components/emergency-pool/VoteCard'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
 import Passbook from '@/components/emergency-pool/Passbook'
 import { Button } from '@/components/ui/button'
-import { Plus, Heart, Wallet } from 'lucide-react'
+import { Plus, Heart, Wallet, Clock3, CheckCircle } from 'lucide-react'
+import { formatCurrency } from '@/lib/utils'
 
-export default function PoolTab({ circleId }: { circleId: string }) {
+export default function PoolTab({ circleId, memberCount = 1 }: { circleId: string; memberCount?: number }) {
   const { t } = useTranslation()
   const { user } = useAuth()
   const { data, loading, refetch } = useEmergencyPool(circleId)
@@ -28,14 +29,54 @@ export default function PoolTab({ circleId }: { circleId: string }) {
     </div>
   )
 
-  const { pool, contributions = [], requests = [] } = data
+  const { pool, requests = [] } = data
   const pendingRequests = requests.filter(r => r.status === 'pending')
   const pastRequests = requests.filter(r => r.status !== 'pending')
+  const approvedRequests = pastRequests.filter(r => r.status === 'approved' || r.status === 'released')
+  const approvalRate = pastRequests.length > 0 ? Math.round((approvedRequests.length / pastRequests.length) * 100) : 0
+  const pendingAmount = pendingRequests.reduce((sum, r) => sum + r.amount, 0)
+  const monthlyTarget = pool.target_monthly_per_member * memberCount
+  const runwayMonths = monthlyTarget > 0 ? pool.total_balance / monthlyTarget : 0
 
   return (
     <div className="space-y-6">
       {/* Balance */}
-      <PoolBalance pool={pool} contributions={contributions} />
+      <PoolBalance pool={pool} />
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-2 flex items-center gap-2">
+            <div className="rounded-lg bg-blue-50 p-2 text-[#2563EB]">
+              <Clock3 className="h-4 w-4" />
+            </div>
+            <p className="text-xs font-medium text-slate-500">Pool runway</p>
+          </div>
+          <p className="text-2xl font-black text-slate-900">{monthlyTarget > 0 ? `${runwayMonths.toFixed(1)} months` : 'N/A'}</p>
+          <p className="mt-1 text-xs text-slate-500">Based on {formatCurrency(monthlyTarget)}/month target</p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-2 flex items-center gap-2">
+            <div className="rounded-lg bg-amber-50 p-2 text-amber-600">
+              <Heart className="h-4 w-4" />
+            </div>
+            <p className="text-xs font-medium text-slate-500">Pending support</p>
+          </div>
+          <p className="text-2xl font-black text-slate-900">{pendingRequests.length}</p>
+          <p className="mt-1 text-xs text-slate-500">{formatCurrency(pendingAmount)} requested</p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-2 flex items-center gap-2">
+            <div className="rounded-lg bg-emerald-50 p-2 text-emerald-600">
+              <CheckCircle className="h-4 w-4" />
+            </div>
+            <p className="text-xs font-medium text-slate-500">Approval rate</p>
+          </div>
+          <p className="text-2xl font-black text-slate-900">{pastRequests.length > 0 ? `${approvalRate}%` : 'N/A'}</p>
+          <p className="mt-1 text-xs text-slate-500">{approvedRequests.length}/{pastRequests.length} resolved requests</p>
+        </div>
+      </div>
 
       {/* Actions */}
       <div className="flex flex-wrap gap-3">

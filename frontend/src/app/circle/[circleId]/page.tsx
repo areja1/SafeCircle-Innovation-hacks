@@ -16,10 +16,11 @@ import EmergencyPoolWidget from '@/components/dashboard/EmergencyPoolWidget'
 import RiskXRayTab from './RiskXRayTab'
 import PoolTab from './PoolTab'
 import CrisisTab from './CrisisTab'
-import { Copy, Check, Users, ArrowLeft } from 'lucide-react'
+import { Copy, Check, Users, ArrowLeft, ShieldCheck, AlertTriangle, Wallet } from 'lucide-react'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { formatCurrency } from '@/lib/utils'
 
 export default function CircleDetailPage() {
   const { circleId } = useParams<{ circleId: string }>()
@@ -45,6 +46,14 @@ export default function CircleDetailPage() {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  const memberCount = circle.members?.length ?? 0
+  const scannedCount = circle.members?.filter(m => m.survey_completed).length ?? 0
+  const scanCompletion = memberCount > 0 ? Math.round((scannedCount / memberCount) * 100) : 0
+  const poolBalance = poolData?.pool?.total_balance ?? 0
+  const monthlyPoolNeed = (poolData?.pool?.target_monthly_per_member ?? 0) * memberCount
+  const poolRunwayMonths = monthlyPoolNeed > 0 ? poolBalance / monthlyPoolNeed : 0
+  const highRiskMembers = (groupReport?.member_reports ?? []).filter(m => m.risk_score >= 70).length
 
   return (
     <div className="p-6 lg:p-8">
@@ -119,6 +128,45 @@ export default function CircleDetailPage() {
         {/* OVERVIEW */}
         <TabsContent value="overview">
           <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="mb-2 flex items-center gap-2">
+                  <div className="rounded-lg bg-blue-50 p-2 text-[#2563EB]">
+                    <ShieldCheck className="h-4 w-4" />
+                  </div>
+                  <p className="text-xs font-medium text-slate-500">Scan completion</p>
+                </div>
+                <p className="text-2xl font-black text-slate-900">{scanCompletion}%</p>
+                <p className="mt-1 text-xs text-slate-500">{scannedCount}/{memberCount} members scanned</p>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="mb-2 flex items-center gap-2">
+                  <div className="rounded-lg bg-red-50 p-2 text-red-600">
+                    <AlertTriangle className="h-4 w-4" />
+                  </div>
+                  <p className="text-xs font-medium text-slate-500">High-risk members</p>
+                </div>
+                <p className="text-2xl font-black text-slate-900">{highRiskMembers}</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {groupReport?.group_risk_score ?? 'N/A'} group score
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="mb-2 flex items-center gap-2">
+                  <div className="rounded-lg bg-emerald-50 p-2 text-emerald-600">
+                    <Wallet className="h-4 w-4" />
+                  </div>
+                  <p className="text-xs font-medium text-slate-500">Pool readiness</p>
+                </div>
+                <p className="text-2xl font-black text-slate-900">
+                  {monthlyPoolNeed > 0 ? `${poolRunwayMonths.toFixed(1)} months` : 'N/A'}
+                </p>
+                <p className="mt-1 text-xs text-slate-500">{formatCurrency(poolBalance)} available now</p>
+              </div>
+            </div>
+
             {/* Members */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
               <h3 className="font-bold text-[#1E293B] mb-4 flex items-center gap-2">
@@ -172,7 +220,7 @@ export default function CircleDetailPage() {
 
         {/* EMERGENCY POOL */}
         <TabsContent value="pool">
-          <PoolTab circleId={circleId} />
+          <PoolTab circleId={circleId} memberCount={memberCount} />
         </TabsContent>
 
         {/* CRISIS MODE */}

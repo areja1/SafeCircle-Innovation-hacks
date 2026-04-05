@@ -58,7 +58,7 @@ export default function VoteCard({ request, circleId, currentUserId, onVoted }: 
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-bold text-[#1E293B]">{request.requester_name}</p>
+            <p className="font-bold text-[#1E293B]">{request.requester_name || 'A member'}</p>
             <Badge variant={status.variant}>
               <StatusIcon className="w-3 h-3 mr-1" />
               {status.label}

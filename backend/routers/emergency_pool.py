@@ -57,10 +57,29 @@ def get_pool(circle_id: str, current_user: dict = Depends(get_current_user)):
         for c in (contributions.data or [])
     ]
 
-    fund_requests_formatted = [
-        {**r, "amount": r["amount"] // 100}
-        for r in (fund_requests.data or [])
-    ]
+    requester_ids = list({r["requested_by"] for r in (fund_requests.data or []) if r.get("requested_by")})
+    requester_name_map = {}
+    if requester_ids:
+        profiles = (
+            db.table("profiles")
+            .select("id, full_name")
+            .in_("id", requester_ids)
+            .execute()
+        )
+        requester_name_map = {
+            p["id"]: p["full_name"]
+            for p in (profiles.data or [])
+            if p.get("id")
+        }
+
+    fund_requests_formatted = []
+    for r in (fund_requests.data or []):
+        requester_name = requester_name_map.get(r.get("requested_by"), "A member")
+        fund_requests_formatted.append({
+            **r,
+            "amount": r["amount"] // 100,
+            "requester_name": requester_name,
+        })
 
     return {
         "pool": pool,

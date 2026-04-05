@@ -54,6 +54,10 @@ def list_circles(current_user: dict = Depends(get_current_user)):
             .execute()
         )
 
+        # Convert cents to dollars to match pool endpoint
+        if pool_rows.data:
+            pool_rows.data[0]["total_balance"] = pool_rows.data[0]["total_balance"] // 100
+
         result.append({
             **circle,
             "members": [{"id": m["id"]} for m in member_rows.data],

@@ -47,7 +47,7 @@ export default function CircleDetailPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="p-6 lg:p-8">
       {/* Payment result banner */}
       {paymentBanner === 'success' && (
         <div className="bg-green-50 border border-green-200 rounded-2xl px-5 py-4 mb-4 flex items-center justify-between animate-fade-in">
@@ -69,29 +69,29 @@ export default function CircleDetailPage() {
       )}
 
       {/* Back */}
-      <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#2563EB] mb-6 transition-colors">
+      <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#CC0000] mb-4 transition-colors">
         <ArrowLeft className="w-4 h-4" />
         Dashboard
       </Link>
 
       {/* Header */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-6">
+      <div className="bg-gradient-to-br from-[#231F20] to-[#CC0000] rounded-2xl p-6 mb-6 text-white shadow-xl">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-2xl font-black text-[#1E293B]">{circle.name}</h1>
-            {circle.description && <p className="text-slate-500 text-sm mt-1">{circle.description}</p>}
-            <div className="flex items-center gap-3 mt-3">
-              <span className="flex items-center gap-1 text-sm text-slate-500">
+            <h1 className="text-3xl font-black">{circle.name}</h1>
+            {circle.description && <p className="text-slate-300 text-sm mt-1">{circle.description}</p>}
+            <div className="flex items-center gap-3 mt-4 flex-wrap">
+              <span className="flex items-center gap-1.5 text-sm text-slate-300 bg-white/10 rounded-lg px-3 py-1.5">
                 <Users className="w-4 h-4" />
                 {circle.members?.length ?? 0} {t('circle.members')}
               </span>
-              <div className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-1">
+              <div className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-1.5 border border-white/20">
                 <span className="text-xs text-slate-400">{t('circle.inviteCode')}:</span>
-                <code className="text-xs font-mono font-bold text-[#2563EB] uppercase tracking-widest">
+                <code className="text-sm font-mono font-bold text-blue-300 uppercase tracking-widest">
                   {circle.invite_code}
                 </code>
-                <button onClick={copyCode} className="text-slate-400 hover:text-[#2563EB] transition-colors ml-1">
-                  {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                <button onClick={copyCode} className="text-slate-400 hover:text-blue-300 transition-colors ml-1">
+                  {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
               </div>
             </div>

@@ -2,6 +2,7 @@
 
 import { useTranslation } from 'react-i18next'
 import { Car, Briefcase, Heart, Home, AlertCircle } from 'lucide-react'
+import CrisisAccuracyBadge from './CrisisAccuracyBadge'
 import type { CrisisType } from '@/types'
 import { cn } from '@/lib/utils'
 
@@ -9,6 +10,7 @@ interface CrisisSelectorProps {
   onSelect: (type: CrisisType) => void
   loading?: boolean
   selected?: CrisisType | null
+  userState?: string
 }
 
 const crisisOptions: { type: CrisisType; labelKey: string; icon: React.ElementType; color: string; bg: string; description: string }[] = [
@@ -54,11 +56,14 @@ const crisisOptions: { type: CrisisType; labelKey: string; icon: React.ElementTy
   },
 ]
 
-export default function CrisisSelector({ onSelect, loading, selected }: CrisisSelectorProps) {
+export default function CrisisSelector({ onSelect, loading, selected, userState = 'AZ' }: CrisisSelectorProps) {
   const { t } = useTranslation()
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Community accuracy badge */}
+      <CrisisAccuracyBadge />
+
       <div className="text-center mb-6">
         <h2 className="text-xl font-bold text-[#1E293B]">{t('crisis.selectCrisis')}</h2>
         <p className="text-sm text-slate-500 mt-1">We'll give you a step-by-step plan immediately</p>

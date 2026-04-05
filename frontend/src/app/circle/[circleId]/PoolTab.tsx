@@ -38,12 +38,12 @@ export default function PoolTab({ circleId }: { circleId: string }) {
       <PoolBalance pool={pool} contributions={contributions} />
 
       {/* Actions */}
-      <div className="grid grid-cols-2 gap-3">
-        <Button onClick={() => setShowContribute(true)} className="gap-2" size="lg">
+      <div className="flex flex-wrap gap-3">
+        <Button onClick={() => setShowContribute(true)} className="gap-2 min-w-[150px]" size="default">
           <Plus className="w-4 h-4" />
           {t('pool.contribute')}
         </Button>
-        <Button variant="outline" onClick={() => setShowRequest(true)} className="gap-2" size="lg">
+        <Button variant="outline" onClick={() => setShowRequest(true)} className="gap-2 min-w-[150px]" size="default">
           <Heart className="w-4 h-4" />
           {t('pool.requestHelp')}
         </Button>

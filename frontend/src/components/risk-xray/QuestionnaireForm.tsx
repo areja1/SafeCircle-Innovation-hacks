@@ -149,6 +149,7 @@ export default function QuestionnaireForm({ onSubmit, loading }: QuestionnaireFo
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<SurveyAnswers>(defaultAnswers)
   const [inputVal, setInputVal] = useState('')
+  const [touchedYesNo, setTouchedYesNo] = useState<Record<string, boolean>>({})
 
   const visibleQuestions = getVisibleQuestions(answers)
   const q = visibleQuestions[step]
@@ -167,6 +168,7 @@ export default function QuestionnaireForm({ onSubmit, loading }: QuestionnaireFo
       updated.health_insurance_type = 'none'
     }
     setAnswers(updated)
+    setTouchedYesNo(prev => ({ ...prev, [q.id]: true }))
     if (!isLast) setTimeout(() => setStep(s => s + 1), 200)
   }
 
@@ -234,7 +236,7 @@ export default function QuestionnaireForm({ onSubmit, loading }: QuestionnaireFo
               onClick={() => handleYesNo(true)}
               className={cn(
                 "p-4 rounded-xl border-2 font-bold text-lg transition-all",
-                currentAnswer === true
+                touchedYesNo[q.id] && currentAnswer === true
                   ? "border-green-500 bg-green-50 text-green-700"
                   : "border-slate-100 hover:border-green-200 hover:bg-green-50 text-slate-700"
               )}
@@ -245,7 +247,7 @@ export default function QuestionnaireForm({ onSubmit, loading }: QuestionnaireFo
               onClick={() => handleYesNo(false)}
               className={cn(
                 "p-4 rounded-xl border-2 font-bold text-lg transition-all",
-                currentAnswer === false
+                touchedYesNo[q.id] && currentAnswer === false
                   ? "border-red-400 bg-red-50 text-red-700"
                   : "border-slate-100 hover:border-red-200 hover:bg-red-50 text-slate-700"
               )}
@@ -276,7 +278,7 @@ export default function QuestionnaireForm({ onSubmit, loading }: QuestionnaireFo
       </div>
 
       {/* Navigation */}
-      <div className="flex gap-3">
+      <div className="flex items-center justify-between gap-3">
         {step > 0 && (
           <Button variant="outline" onClick={() => setStep(s => s - 1)} className="gap-2">
             <ChevronLeft className="w-4 h-4" />
@@ -284,7 +286,7 @@ export default function QuestionnaireForm({ onSubmit, loading }: QuestionnaireFo
           </Button>
         )}
         {(q.type === 'number' || isLast) && (
-          <Button onClick={handleNext} disabled={loading} className="flex-1 gap-2">
+          <Button onClick={handleNext} disabled={loading} className="gap-2 min-w-[140px] ml-auto">
             {loading ? 'Analyzing...' : isLast ? t('riskXray.submit') : t('riskXray.next')}
             {!loading && <ChevronRight className="w-4 h-4" />}
           </Button>

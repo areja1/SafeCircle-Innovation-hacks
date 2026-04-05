@@ -96,21 +96,21 @@ export default function LandingPage() {
               <div className="flex flex-col sm:flex-row gap-3">
                 {user ? (
                   <Link href="/dashboard">
-                    <Button size="xl" className="w-full sm:w-auto gap-2 bg-white text-[#CC0000] hover:bg-gray-100 font-bold shadow-xl px-8">
-                      Go to Dashboard
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
+                      <Button size="lg" className="gap-2 bg-white text-[#CC0000] hover:bg-gray-100 font-semibold shadow-xl">
+                        Go to Dashboard
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
                   </Link>
                 ) : (
                   <>
                     <Link href="/signup">
-                      <Button size="xl" className="w-full sm:w-auto gap-2 bg-white text-[#CC0000] hover:bg-gray-100 font-bold shadow-xl px-8">
+                      <Button size="lg" className="gap-2 bg-white text-[#CC0000] hover:bg-gray-100 font-semibold shadow-xl">
                         {t('landing.cta_signup')}
                         <ArrowRight className="w-4 h-4" />
                       </Button>
                     </Link>
                     <Link href="/login">
-                      <Button size="xl" variant="outline" className="w-full sm:w-auto border-white/40 text-white hover:bg-white/10 bg-transparent px-8">
+                      <Button size="lg" variant="outline" className="border-white/40 text-white hover:bg-white/10 bg-transparent">
                         {t('landing.cta_login')}
                       </Button>
                     </Link>
@@ -330,7 +330,7 @@ export default function LandingPage() {
           </h2>
           <p className="text-white/75 text-lg mb-10">It takes 2 minutes. It&apos;s free. It could save thousands.</p>
           <Link href={user ? '/dashboard' : '/signup'}>
-            <Button size="xl" className="bg-white text-[#CC0000] hover:bg-gray-100 font-black gap-2 px-10 shadow-2xl">
+            <Button size="lg" className="bg-white text-[#CC0000] hover:bg-gray-100 font-bold gap-2 shadow-2xl">
               {user ? 'Go to Dashboard' : t('landing.cta_signup')}
               <ArrowRight className="w-4 h-4" />
             </Button>

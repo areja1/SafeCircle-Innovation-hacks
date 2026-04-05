@@ -55,4 +55,8 @@ export const checkBenefits = (data: Record<string, unknown>) => api.get('/benefi
 // NOTIFICATIONS
 export const getNotifications = () => api.get('/notifications')
 
+// CHAT
+export const sendChatMessage = (message: string, history: { role: string; content: string }[], language?: string) =>
+  api.post('/chat', { message, history, language })
+
 export default api

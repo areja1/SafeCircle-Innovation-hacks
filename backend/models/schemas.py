@@ -76,6 +76,12 @@ class BenefitsCheckRequest(BaseModel):
     has_health_insurance: bool
 
 
+class ChatMessageRequest(BaseModel):
+    message: str
+    language: Literal["en", "es"] = "en"
+    history: Optional[List[dict]] = None
+
+
 # ============================================================
 # RESPONSE MODELS
 # ============================================================

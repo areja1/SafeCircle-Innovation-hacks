@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import auth, circles, risk_xray, crisis, emergency_pool, benefits, members, stripe_payments, notifications, analytics
+from routers import auth, circles, risk_xray, crisis, emergency_pool, benefits, members, stripe_payments, notifications, analytics, chat
 
 app = FastAPI(
     title="SafeCircle API",
@@ -27,6 +27,7 @@ app.include_router(stripe_payments.router, prefix="/api/v1", tags=["payments"])
 app.include_router(members.router, prefix="/api/v1/members", tags=["members"])
 app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["notifications"])
 app.include_router(analytics.router, prefix="/api/v1", tags=["analytics"])
+app.include_router(chat.router, prefix="/api/v1", tags=["chat"])
 
 
 @app.get("/")

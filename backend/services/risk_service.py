@@ -1,8 +1,10 @@
 import sys
 import os
 
-# Allow importing from engine/ at the repo root
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "engine"))
+# Add repo root to path so engine package can be imported as `engine.risk_engine`
+_REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
 
 from services.ai_service import analyze_risk
 
@@ -10,16 +12,16 @@ from services.ai_service import analyze_risk
 def run_risk_analysis(survey: dict, circle_members_data: list[dict]) -> dict:
     """
     Orchestrate risk analysis:
-    1. Try to call Sumedh's engine for base scoring (graceful fallback if not ready).
+    1. Try to call the engine for base scoring (graceful fallback if not ready).
     2. Pass everything to Claude for AI narrative and enrichment.
     """
-    # Step 1: Try engine (Sumedh's code) — safe import so backend works even if engine is not ready
+    # Step 1: Try engine — safe import so backend works even if engine is not ready
     engine_result = {}
     try:
-        from risk_engine import calculate_risk_score  # type: ignore
+        from engine.risk_engine import calculate_risk_score  # type: ignore
         engine_result = calculate_risk_score(survey)
-    except ImportError:
-        pass  # Engine not ready yet — Claude will handle scoring
+    except Exception:
+        pass  # Engine not ready or errored — Claude will handle scoring
 
     # Step 2: Enrich with Claude AI
     ai_result = analyze_risk(survey, circle_members_data)
@@ -41,9 +43,9 @@ def compute_group_risk(member_results: list[dict]) -> dict:
     Falls back to simple averaging if Sumedh's engine is not ready.
     """
     try:
-        from risk_engine import calculate_group_risk  # type: ignore
+        from engine.risk_engine import calculate_group_risk  # type: ignore
         return calculate_group_risk(member_results)
-    except ImportError:
+    except Exception:
         pass
 
     # Fallback: simple average

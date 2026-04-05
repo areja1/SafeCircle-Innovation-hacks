@@ -16,10 +16,122 @@ def _parse_json_response(text: str) -> dict:
     return json.loads(text.strip())
 
 
+def _fallback_risk(survey_data: dict, circle_members_data: list[dict]) -> dict:
+    """Deterministic fallback when Claude is unavailable."""
+    gaps = []
+    score = 30
+
+    if not survey_data.get("has_health_insurance"):
+        score += 20
+        gaps.append({
+            "type": "health",
+            "title": "No Health Insurance",
+            "description": "You have no health coverage. A single ER visit could cost $2,200+.",
+            "risk_amount": 10000,
+            "fix_cost_monthly": 200,
+            "priority": "critical",
+        })
+    if not survey_data.get("has_renters_insurance"):
+        score += 10
+        gaps.append({
+            "type": "renters",
+            "title": "No Renters Insurance",
+            "description": "Your belongings aren't covered if there's a fire, theft, or water damage.",
+            "risk_amount": 20000,
+            "fix_cost_monthly": 15,
+            "priority": "high",
+        })
+    if survey_data.get("drives_for_gig_apps") and not survey_data.get("has_rideshare_endorsement"):
+        score += 15
+        gaps.append({
+            "type": "auto_rideshare",
+            "title": "No Rideshare Coverage",
+            "description": "Your personal auto policy won't cover accidents while driving for DoorDash/Uber.",
+            "risk_amount": 8000,
+            "fix_cost_monthly": 20,
+            "priority": "critical",
+        })
+
+    n_members = len(circle_members_data)
+    uninsured = sum(1 for m in circle_members_data if not m.get("has_health_insurance", True))
+    group_insights = []
+    if n_members > 0 and uninsured > 0:
+        group_insights.append(f"{uninsured} of {n_members + 1} members have no health insurance")
+
+    return {
+        "risk_score": min(score, 100),
+        "gaps": gaps,
+        "benefits_eligible": [],
+        "poverty_tax_annual": 0,
+        "ai_analysis": (
+            "We were unable to generate a personalized AI analysis right now. "
+            "The gaps identified above are based on your survey answers. "
+            "Review each one and take action on the critical items first."
+        ),
+        "group_insights": group_insights,
+    }
+
+
+def _fallback_crisis_triage(crisis_type: str, state: str) -> dict:
+    """Deterministic fallback when Claude is unavailable."""
+    return {
+        "crisis_type": crisis_type,
+        "steps": [
+            {
+                "id": "step_1",
+                "priority": "red",
+                "time_window": "0-4 hours",
+                "title": "Document Everything Now",
+                "description": "Take photos and videos of all damage, injuries, or evidence. Write down exactly what happened while it's fresh.",
+                "why_it_matters": "Evidence collected immediately is far stronger for insurance and legal claims.",
+                "cost_of_not_doing": 5000,
+                "deadline_hours": 4,
+                "action_url": None,
+            },
+            {
+                "id": "step_2",
+                "priority": "red",
+                "time_window": "0-4 hours",
+                "title": "Do NOT Sign Anything",
+                "description": "Do not sign any releases, settlement agreements, or paperwork from any company or adjuster until you fully understand what you're agreeing to.",
+                "why_it_matters": "First settlement offers are typically 40% below fair value. Signing waives your rights.",
+                "cost_of_not_doing": 8000,
+                "deadline_hours": 4,
+                "action_url": None,
+            },
+            {
+                "id": "step_3",
+                "priority": "orange",
+                "time_window": "4-24 hours",
+                "title": "File Your Insurance Claim",
+                "description": "Call your insurance company and open a claim. Get a claim number and the adjuster's contact information.",
+                "why_it_matters": "Delays in reporting can reduce or void your coverage.",
+                "cost_of_not_doing": 3000,
+                "deadline_hours": 24,
+                "action_url": None,
+            },
+            {
+                "id": "step_4",
+                "priority": "yellow",
+                "time_window": "24-72 hours",
+                "title": "Check Emergency Assistance Programs",
+                "description": "Search for local emergency assistance, community organizations, and government programs that can help right now.",
+                "why_it_matters": "Many people leave hundreds or thousands in benefits unclaimed.",
+                "cost_of_not_doing": 1000,
+                "deadline_hours": 72,
+                "action_url": None,
+            },
+        ],
+        "estimated_total_savings": 17000,
+        "dont_sign_warning": "Do not sign any settlement agreements or releases without reviewing them carefully. Early offers are often 40% below fair value. You have the right to review all documents.",
+    }
+
+
 def analyze_risk(survey_data: dict, circle_members_data: list[dict]) -> dict:
     """
     Send survey data to Claude for risk analysis.
     Returns structured risk report with score, gaps, benefits, and AI narrative.
+    Falls back to deterministic engine output if Claude is unavailable.
     """
     prompt = f"""You are a financial risk analyst for underserved communities.
     Analyze this person's financial situation and their group's collective risk.
@@ -74,19 +186,22 @@ def analyze_risk(survey_data: dict, circle_members_data: list[dict]) -> dict:
     - If someone drives for DoorDash/Uber WITHOUT a rideshare endorsement, this is CRITICAL priority.
     """
 
-    response = client.messages.create(
-        model=CLAUDE_MODEL,
-        max_tokens=2000,
-        messages=[{"role": "user", "content": prompt}],
-    )
-
-    return _parse_json_response(response.content[0].text)
+    try:
+        response = client.messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=2000,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return _parse_json_response(response.content[0].text)
+    except Exception:
+        return _fallback_risk(survey_data, circle_members_data)
 
 
 def generate_crisis_triage(crisis_type: str, state: str, user_context: dict = None) -> dict:
     """
     Generate AI-personalized crisis triage steps for a given crisis type and state.
     Returns structured triage plan with time-sequenced steps.
+    Falls back to a static playbook if Claude is unavailable.
     """
     prompt = f"""You are a financial first responder. Someone just experienced a {crisis_type} in {state}.
 
@@ -130,10 +245,12 @@ def generate_crisis_triage(crisis_type: str, state: str, user_context: dict = No
     - Write like you're talking to a scared friend, not a textbook
     """
 
-    response = client.messages.create(
-        model=CLAUDE_MODEL,
-        max_tokens=2000,
-        messages=[{"role": "user", "content": prompt}],
-    )
-
-    return _parse_json_response(response.content[0].text)
+    try:
+        response = client.messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=2000,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return _parse_json_response(response.content[0].text)
+    except Exception:
+        return _fallback_crisis_triage(crisis_type, state)

@@ -126,7 +126,9 @@
     "votesNeeded": "votos necesarios",
     "target": "Meta mensual por miembro",
     "history": "Historial de Contribuciones",
-    "noRequests": "No hay solicitudes activas"
+    "noRequests": "No hay solicitudes activas",
+    "alreadyVoted": "Ya votaste en esta solicitud.",
+    "voteFailed": "No se pudo registrar tu voto. Intenta de nuevo."
   },
   "common": {
     "loading": "Cargando...",

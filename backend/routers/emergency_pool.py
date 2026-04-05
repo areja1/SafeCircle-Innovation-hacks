@@ -57,8 +57,9 @@ def get_pool(circle_id: str, current_user: dict = Depends(get_current_user)):
         for c in (contributions.data or [])
     ]
 
-    requester_ids = list({r["requested_by"] for r in (fund_requests.data or []) if r.get("requested_by")})
-    requester_name_map = {}
+    rows = fund_requests.data or []
+    requester_ids = list({str(r["requested_by"]) for r in rows if r.get("requested_by")})
+    requester_name_map: dict[str, str] = {}
     if requester_ids:
         profiles = (
             db.table("profiles")
@@ -67,18 +68,34 @@ def get_pool(circle_id: str, current_user: dict = Depends(get_current_user)):
             .execute()
         )
         requester_name_map = {
-            p["id"]: p["full_name"]
+            str(p["id"]): (p.get("full_name") or "Member").strip() or "Member"
             for p in (profiles.data or [])
             if p.get("id")
         }
 
+    user_id_str = str(user_id)
+    req_ids = [str(r["id"]) for r in rows if r.get("id")]
+    my_voted_request_ids: set[str] = set()
+    if req_ids:
+        votes_mine = (
+            db.table("fund_votes")
+            .select("request_id")
+            .eq("voter_id", user_id_str)
+            .in_("request_id", req_ids)
+            .execute()
+        )
+        my_voted_request_ids = {str(v["request_id"]) for v in (votes_mine.data or [])}
+
     fund_requests_formatted = []
-    for r in (fund_requests.data or []):
-        requester_name = requester_name_map.get(r.get("requested_by"), "A member")
+    for r in rows:
+        rid = str(r["id"])
+        rb = str(r["requested_by"]) if r.get("requested_by") else ""
+        requester_name = requester_name_map.get(rb, "A member")
         fund_requests_formatted.append({
             **r,
             "amount": r["amount"] // 100,
             "requester_name": requester_name,
+            "current_user_has_voted": rid in my_voted_request_ids,
         })
 
     return {
@@ -240,7 +257,9 @@ def vote_on_request(
     if fund_request.data["status"] != "pending":
         raise HTTPException(status_code=400, detail="This request is no longer pending")
 
-    if fund_request.data["requested_by"] == user_id:
+    req_by = str(fund_request.data["requested_by"])
+    uid = str(user_id)
+    if req_by == uid:
         raise HTTPException(status_code=400, detail="You cannot vote on your own request")
 
-    return cast_vote(body.request_id, user_id, body.vote)
+    return cast_vote(str(body.request_id), uid, body.vote)

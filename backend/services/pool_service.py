@@ -72,6 +72,8 @@ def create_fund_request(pool_id: str, user_id: str, amount_dollars: int, reason:
 def cast_vote(request_id: str, voter_id: str, vote: bool) -> dict:
     """Record a vote. Auto-release (and deduct balance) on majority approve; deny on majority deny."""
     db = get_db()
+    request_id = str(request_id)
+    voter_id = str(voter_id)
 
     # Check for duplicate vote
     existing = (

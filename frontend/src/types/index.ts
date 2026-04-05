@@ -165,6 +165,8 @@ export interface FundRequest {
   votes_needed: number;
   votes_received: number;
   created_at: string;
+  /** Set by GET pool — true if this user already has a row in fund_votes */
+  current_user_has_voted?: boolean;
 }
 
 // ============ POVERTY TAX TYPES ============

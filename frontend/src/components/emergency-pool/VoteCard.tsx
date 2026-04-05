@@ -7,7 +7,6 @@ import type { FundRequest } from '@/types'
 import { voteFunds } from '@/lib/api'
 import { ThumbsUp, ThumbsDown, Clock, CheckCircle2, XCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
 
 interface VoteCardProps {
   request: FundRequest
@@ -35,19 +34,29 @@ export default function VoteCard({ request, circleId, currentUserId, onVoted }: 
   const { t } = useTranslation()
   const [voting, setVoting] = useState(false)
   const [voted, setVoted] = useState(false)
-  const isRequester = currentUserId === request.requested_by
+  const [voteError, setVoteError] = useState<string | null>(null)
+
+  const isRequester =
+    !!currentUserId &&
+    !!request.requested_by &&
+    String(currentUserId) === String(request.requested_by)
+
+  const alreadyVoted = Boolean(request.current_user_has_voted) || voted
 
   const status = STATUS_CONFIG[request.status]
   const StatusIcon = status.icon
 
   const handleVote = async (vote: boolean) => {
     setVoting(true)
+    setVoteError(null)
     try {
       await voteFunds(circleId, { request_id: request.id, vote })
       setVoted(true)
       onVoted?.()
-    } catch {
-      // ignore
+    } catch (e: unknown) {
+      const ax = e as { response?: { data?: { detail?: string } } }
+      const detail = ax.response?.data?.detail
+      setVoteError(typeof detail === 'string' ? detail : t('pool.voteFailed'))
     } finally {
       setVoting(false)
     }
@@ -91,7 +100,17 @@ export default function VoteCard({ request, circleId, currentUserId, onVoted }: 
       {isRequester && request.status === 'pending' && (
         <p className="text-center text-sm text-slate-400 font-medium">Your request is pending circle approval</p>
       )}
-      {request.status === 'pending' && !voted && !isRequester && (
+      {voteError && (
+        <p className="mb-3 text-center text-sm text-red-600 font-medium" role="alert">
+          {voteError}
+        </p>
+      )}
+
+      {request.status === 'pending' && !isRequester && alreadyVoted && (
+        <p className="text-center text-sm text-slate-500 font-medium">{t('pool.alreadyVoted')}</p>
+      )}
+
+      {request.status === 'pending' && !alreadyVoted && !isRequester && (
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => handleVote(true)}
@@ -112,7 +131,7 @@ export default function VoteCard({ request, circleId, currentUserId, onVoted }: 
         </div>
       )}
 
-      {voted && (
+      {voted && !voteError && (
         <p className="text-center text-sm text-green-600 font-medium">✓ Your vote was recorded</p>
       )}
     </div>

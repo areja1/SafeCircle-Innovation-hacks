@@ -126,7 +126,9 @@
     "votesNeeded": "votes needed",
     "target": "Monthly target per member",
     "history": "Contribution History",
-    "noRequests": "No active fund requests"
+    "noRequests": "No active fund requests",
+    "alreadyVoted": "You already voted on this request.",
+    "voteFailed": "Could not record your vote. Try again."
   },
   "common": {
     "loading": "Loading...",

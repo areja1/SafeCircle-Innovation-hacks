@@ -21,8 +21,8 @@ export function useEmergencyPool(circleId: string) {
       setLoading(true)
       const res = await getPool(circleId)
       setData(res.data)
-    } catch {
-      setError('Failed to load pool data')
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || 'Failed to load pool data')
     } finally {
       setLoading(false)
     }

@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 interface VoteCardProps {
   request: FundRequest
   circleId: string
+  currentUserId?: string
   onVoted?: () => void
 }
 
@@ -30,10 +31,11 @@ const CRISIS_LABELS: Record<string, string> = {
   other: '❓ Emergency',
 }
 
-export default function VoteCard({ request, circleId, onVoted }: VoteCardProps) {
+export default function VoteCard({ request, circleId, currentUserId, onVoted }: VoteCardProps) {
   const { t } = useTranslation()
   const [voting, setVoting] = useState(false)
   const [voted, setVoted] = useState(false)
+  const isRequester = currentUserId === request.requested_by
 
   const status = STATUS_CONFIG[request.status]
   const StatusIcon = status.icon
@@ -86,7 +88,10 @@ export default function VoteCard({ request, circleId, onVoted }: VoteCardProps) 
       </div>
 
       {/* Vote buttons */}
-      {request.status === 'pending' && !voted && (
+      {isRequester && request.status === 'pending' && (
+        <p className="text-center text-sm text-slate-400 font-medium">Your request is pending circle approval</p>
+      )}
+      {request.status === 'pending' && !voted && !isRequester && (
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => handleVote(true)}

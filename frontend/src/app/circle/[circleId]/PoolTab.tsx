@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useEmergencyPool } from '@/hooks/useEmergencyPool'
+import { useAuth } from '@/hooks/useAuth'
 import PoolBalance from '@/components/emergency-pool/PoolBalance'
 import ContributeModal from '@/components/emergency-pool/ContributeModal'
 import RequestFunds from '@/components/emergency-pool/RequestFunds'
@@ -13,6 +14,7 @@ import { Plus, Heart, Wallet } from 'lucide-react'
 
 export default function PoolTab({ circleId }: { circleId: string }) {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const { data, loading, refetch } = useEmergencyPool(circleId)
   const [showContribute, setShowContribute] = useState(false)
   const [showRequest, setShowRequest] = useState(false)
@@ -52,7 +54,7 @@ export default function PoolTab({ circleId }: { circleId: string }) {
           <h3 className="font-bold text-[#1E293B] mb-3">Needs Your Vote</h3>
           <div className="space-y-3">
             {pendingRequests.map(req => (
-              <VoteCard key={req.id} request={req} circleId={circleId} onVoted={refetch} />
+              <VoteCard key={req.id} request={req} circleId={circleId} currentUserId={user?.id} onVoted={refetch} />
             ))}
           </div>
         </div>
@@ -64,7 +66,7 @@ export default function PoolTab({ circleId }: { circleId: string }) {
           <h3 className="font-bold text-[#1E293B] mb-3">Past Requests</h3>
           <div className="space-y-3">
             {pastRequests.map(req => (
-              <VoteCard key={req.id} request={req} circleId={circleId} />
+              <VoteCard key={req.id} request={req} circleId={circleId} currentUserId={user?.id} />
             ))}
           </div>
         </div>

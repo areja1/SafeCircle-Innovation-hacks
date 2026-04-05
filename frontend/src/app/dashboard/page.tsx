@@ -61,7 +61,7 @@ export default function DashboardPage() {
     setJoining(true)
     setError('')
     try {
-      await joinCircleByCode(inviteCode)
+      await joinCircleByCode(inviteCode.toUpperCase())
       await refetch()
       setShowJoin(false)
       setInviteCode('')

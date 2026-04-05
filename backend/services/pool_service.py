@@ -50,10 +50,23 @@ def create_fund_request(pool_id: str, user_id: str, amount_dollars: int, reason:
         "crisis_type": crisis_type,
         "status": "pending",
         "votes_needed": votes_needed,
-        "votes_received": 0,
+        "votes_received": 1,
     }).execute()
 
-    return result.data[0]
+    new_request = result.data[0]
+
+    # Explicitly set votes_received = 1 in case DB default overrides insert
+    db.table("fund_requests").update({"votes_received": 1}).eq("id", new_request["id"]).execute()
+
+    # Record the requester's implicit vote in fund_votes so it's trackable
+    db.table("fund_votes").insert({
+        "request_id": new_request["id"],
+        "voter_id": user_id,
+        "vote": True,
+    }).execute()
+
+    new_request["votes_received"] = 1
+    return new_request
 
 
 def cast_vote(request_id: str, voter_id: str, vote: bool) -> dict:

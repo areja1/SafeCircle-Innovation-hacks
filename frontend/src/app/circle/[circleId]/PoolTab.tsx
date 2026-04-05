@@ -9,6 +9,7 @@ import ContributeModal from '@/components/emergency-pool/ContributeModal'
 import RequestFunds from '@/components/emergency-pool/RequestFunds'
 import VoteCard from '@/components/emergency-pool/VoteCard'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
+import Passbook from '@/components/emergency-pool/Passbook'
 import { Button } from '@/components/ui/button'
 import { Plus, Heart, Wallet } from 'lucide-react'
 
@@ -77,6 +78,9 @@ export default function PoolTab({ circleId }: { circleId: string }) {
           <p className="text-sm">{t('pool.noRequests')}</p>
         </div>
       )}
+
+      {/* Passbook */}
+      <Passbook circleId={circleId} />
 
       {/* Modals */}
       {showContribute && (

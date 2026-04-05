@@ -1,3 +1,15 @@
 {
-  "_comment": "TODO (Sumedh): Risk scoring weights for each factor"
+  "no_renters_insurance": 15,
+  "no_rideshare_endorsement": 20,
+  "no_health_insurance": 20,
+  "no_auto_insurance": 15,
+  "no_life_insurance": 10,
+  "no_emergency_savings": 15,
+  "low_emergency_savings": 8,
+  "moderate_emergency_savings": 3,
+  "no_credit_score": 10,
+  "poor_credit": 8,
+  "unknown_credit": 5,
+  "gig_worker": 8,
+  "unemployed": 12
 }

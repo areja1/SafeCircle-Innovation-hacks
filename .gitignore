@@ -5,6 +5,9 @@
 # Implementation doc (internal only — do NOT commit)
 safecircle-implementation.md
 
+# Abhinav personal backend backlog (local checklist — do NOT commit)
+backend/TODO_ABHINAV.md
+
 # ---- Python / Backend ----
 __pycache__/
 *.py[cod]
@@ -35,11 +38,16 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # ---- Environment files ----
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 *.env
+# .env.example files are intentionally committed (empty-value templates)
+!.env.example
+!*.env.example
+!.env.local.example
 
 # ---- OS ----
 .DS_Store

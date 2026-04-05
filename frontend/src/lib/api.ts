@@ -21,6 +21,7 @@ export const getCircles = () => api.get('/circles')
 export const createCircle = (data: { name: string; description?: string }) => api.post('/circles', data)
 export const getCircle = (id: string) => api.get(`/circles/${id}`)
 export const joinCircle = (id: string, invite_code: string) => api.post(`/circles/${id}/join`, { invite_code })
+export const joinCircleByCode = (invite_code: string) => api.post('/circles/join-by-code', { invite_code })
 export const leaveCircle = (id: string) => api.delete(`/circles/${id}/leave`)
 
 // RISK X-RAY

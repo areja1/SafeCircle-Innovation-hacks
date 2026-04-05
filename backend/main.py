@@ -1,7 +1,18 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers import auth, circles, risk_xray, crisis, emergency_pool, benefits, members, stripe_payments, notifications, analytics, chat
+
+_frontend = os.getenv("FRONTEND_URL", "http://localhost:3000").rstrip("/")
+_cors_extra = os.getenv("ALLOWED_ORIGINS", "")
+_cors_origins = list(
+    dict.fromkeys(
+        ["http://localhost:3000", _frontend]
+        + [o.strip().rstrip("/") for o in _cors_extra.split(",") if o.strip()]
+    )
+)
 
 app = FastAPI(
     title="SafeCircle API",
@@ -11,7 +22,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://safe-circle-innovation-hacks.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

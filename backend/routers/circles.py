@@ -96,6 +96,44 @@ def create_circle(body: CreateCircleRequest, current_user: dict = Depends(get_cu
     return new_circle
 
 
+@router.post("/join-by-code")
+def join_circle_by_code(body: JoinCircleRequest, current_user: dict = Depends(get_current_user)):
+    """Join a circle using only its invite code (no circle_id needed)."""
+    db = get_db()
+    user_id = current_user["id"]
+
+    circle = (
+        db.table("circles")
+        .select("id, invite_code")
+        .eq("invite_code", body.invite_code)
+        .maybe_single()
+        .execute()
+    )
+    if not circle.data:
+        raise HTTPException(status_code=404, detail="Invalid invite code")
+
+    circle_id = circle.data["id"]
+
+    # Check if already a member
+    existing = (
+        db.table("circle_members")
+        .select("id")
+        .eq("circle_id", circle_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+    if existing.data:
+        raise HTTPException(status_code=400, detail="Already a member of this circle")
+
+    db.table("circle_members").insert({
+        "circle_id": circle_id,
+        "user_id": user_id,
+        "role": "member",
+    }).execute()
+
+    return {"message": "Joined circle successfully", "circle_id": circle_id}
+
+
 @router.get("/{circle_id}")
 def get_circle(circle_id: str, current_user: dict = Depends(get_current_user)):
     """Get circle details including members and pool balance."""
@@ -113,7 +151,7 @@ def get_circle(circle_id: str, current_user: dict = Depends(get_current_user)):
     if not membership.data:
         raise HTTPException(status_code=403, detail="You are not a member of this circle")
 
-    circle = db.table("circles").select("*").eq("id", circle_id).single().execute()
+    circle = db.table("circles").select("*").eq("id", circle_id).maybe_single().execute()
     if not circle.data:
         raise HTTPException(status_code=404, detail="Circle not found")
 
@@ -131,7 +169,7 @@ def get_circle(circle_id: str, current_user: dict = Depends(get_current_user)):
             db.table("profiles")
             .select("full_name")
             .eq("id", m["user_id"])
-            .single()
+            .maybe_single()
             .execute()
         )
         survey = (
@@ -212,7 +250,7 @@ def join_circle(circle_id: str, body: JoinCircleRequest, current_user: dict = De
         db.table("circles")
         .select("id, invite_code")
         .eq("id", circle_id)
-        .single()
+        .maybe_single()
         .execute()
     )
     if not circle.data:

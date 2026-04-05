@@ -1,0 +1,81 @@
+{
+  "snap": {
+    "name": "Nutrition Assistance (SNAP)",
+    "description": "Helps low-income families buy nutritious food from local stores.",
+    "estimated_value": 3024,
+    "how_to_apply": "Apply online using Health-e-Arizona Plus. You will need proof of income and identity.",
+    "apply_url": "https://www.healthearizonaplus.gov/",
+    "income_limit_type": "monthly",
+    "rules": {
+      "gross_income_185_fpl": {
+        "1": 2322,
+        "2": 3152,
+        "3": 3981,
+        "4": 4810,
+        "5": 5640,
+        "6": 6469,
+        "7": 7298,
+        "8": 8128,
+        "each_additional": 830
+      }
+    }
+  },
+  "ahcccs": {
+    "name": "Medicaid (AHCCCS)",
+    "description": "Provides free or low-cost health insurance for adults and children.",
+    "estimated_value": 6000,
+    "how_to_apply": "Apply online using Health-e-Arizona Plus. It is the same application for SNAP and AHCCCS.",
+    "apply_url": "https://www.healthearizonaplus.gov/",
+    "income_limit_type": "monthly",
+    "rules": {
+      "gross_income_138_fpl": {
+        "1": 1732,
+        "2": 2351,
+        "3": 2970,
+        "4": 3588,
+        "5": 4207,
+        "6": 4826,
+        "7": 5445,
+        "8": 6064,
+        "each_additional": 619
+      }
+    }
+  },
+  "liheap": {
+    "name": "Utility Bill Assistance (LIHEAP)",
+    "description": "Helps pay home energy bills, including electricity and gas.",
+    "estimated_value": 640,
+    "how_to_apply": "Apply online through the DES A-to-Z Connect portal or contact your local Community Action Agency.",
+    "apply_url": "https://des.az.gov/services/basic-needs/community-action-programs/how-do-i-apply",
+    "income_limit_type": "monthly",
+    "rules": {
+      "gross_income_60_smi": {
+        "1": 2807,
+        "2": 3671,
+        "3": 4535,
+        "4": 5399,
+        "5": 6262,
+        "6": 7126,
+        "7": 7288,
+        "8": 7451,
+        "each_additional": 163
+      }
+    }
+  },
+  "eitc": {
+    "name": "Earned Income Tax Credit (EITC)",
+    "description": "A federal tax credit for workers with low-to-moderate incomes, which can result in a large tax refund.",
+    "estimated_value": 1500,
+    "how_to_apply": "You must file a federal tax return (Form 1040) to claim this credit. Use IRS Free File to file for free.",
+    "apply_url": "https://www.irs.gov/filing/free-file-do-your-federal-taxes-for-free",
+    "income_limit_type": "annual",
+    "rules": {
+      "max_agi_by_children": {
+        "0": 18591,
+        "1": 49084,
+        "2": 55768,
+        "3": 59899
+      }
+    }
+  }
+}

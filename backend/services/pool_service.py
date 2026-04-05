@@ -8,7 +8,7 @@ def get_pool_for_circle(circle_id: str) -> dict:
         db.table("emergency_pools")
         .select("*")
         .eq("circle_id", circle_id)
-        .single()
+        .maybe_single()
         .execute()
     )
     if not pool.data:
@@ -30,7 +30,7 @@ def contribute_to_pool(pool_id: str, user_id: str, amount_dollars: int) -> dict:
     }).execute()
 
     # Increment pool balance
-    pool = db.table("emergency_pools").select("total_balance").eq("id", pool_id).single().execute()
+    pool = db.table("emergency_pools").select("total_balance").eq("id", pool_id).maybe_single().execute()
     new_balance = pool.data["total_balance"] + amount_cents
     db.table("emergency_pools").update({"total_balance": new_balance}).eq("id", pool_id).execute()
 
@@ -70,7 +70,7 @@ def create_fund_request(pool_id: str, user_id: str, amount_dollars: int, reason:
 
 
 def cast_vote(request_id: str, voter_id: str, vote: bool) -> dict:
-    """Record a vote and auto-approve if threshold is met."""
+    """Record a vote. Auto-release (and deduct balance) on majority approve; deny on majority deny."""
     db = get_db()
 
     # Check for duplicate vote
@@ -90,25 +90,54 @@ def cast_vote(request_id: str, voter_id: str, vote: bool) -> dict:
         "vote": vote,
     }).execute()
 
-    # Tally approve votes and check threshold
+    # Fetch current request state including pool_id and amount for balance deduction
     request = (
         db.table("fund_requests")
-        .select("votes_needed, votes_received, status")
+        .select("pool_id, amount, votes_needed, votes_received, status")
         .eq("id", request_id)
-        .single()
+        .maybe_single()
         .execute()
     )
     req = request.data
 
     if vote:
-        new_count = req["votes_received"] + 1
-        new_status = "approved" if new_count >= req["votes_needed"] else req["status"]
-        db.table("fund_requests").update({
-            "votes_received": new_count,
-            "status": new_status,
-        }).eq("id", request_id).execute()
+        new_approve_count = req["votes_received"] + 1
+        if new_approve_count >= req["votes_needed"]:
+            # Threshold reached: release funds and deduct from pool balance
+            new_status = "released"
+            db.table("fund_requests").update({
+                "votes_received": new_approve_count,
+                "status": new_status,
+            }).eq("id", request_id).execute()
+
+            pool = (
+                db.table("emergency_pools")
+                .select("id, total_balance")
+                .eq("id", req["pool_id"])
+                .maybe_single()
+                .execute()
+            )
+            new_balance = max(0, pool.data["total_balance"] - req["amount"])
+            db.table("emergency_pools").update({"total_balance": new_balance}).eq("id", pool.data["id"]).execute()
+        else:
+            new_status = req["status"]
+            db.table("fund_requests").update({
+                "votes_received": new_approve_count,
+            }).eq("id", request_id).execute()
     else:
-        db.table("fund_requests").update({"status": "denied"}).eq("id", request_id).execute()
-        new_status = "denied"
+        # Count all deny votes so far (including the one just inserted)
+        deny_votes = (
+            db.table("fund_votes")
+            .select("id")
+            .eq("request_id", request_id)
+            .eq("vote", False)
+            .execute()
+        )
+        deny_count = len(deny_votes.data)
+        if deny_count >= req["votes_needed"]:
+            new_status = "denied"
+            db.table("fund_requests").update({"status": new_status}).eq("id", request_id).execute()
+        else:
+            new_status = req["status"]
 
     return {"request_id": request_id, "vote": vote, "new_status": new_status}

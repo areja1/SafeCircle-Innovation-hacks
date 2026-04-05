@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
-import { LayoutDashboard, User, Shield, LogOut, ChevronRight, Plus, Zap, BookOpen, BarChart2 } from 'lucide-react'
+import { LayoutDashboard, User, Shield, LogOut, ChevronRight, Plus, BookOpen, BarChart2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { useCircles } from '@/hooks/useCircle'
@@ -100,17 +100,6 @@ export default function Sidebar() {
               )
             })
           )}
-        </div>
-      </div>
-
-      {/* Crisis mode shortcut */}
-      <div className="px-3 py-3">
-        <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2.5 flex items-center gap-2">
-          <Zap className="w-4 h-4 text-red-400 flex-shrink-0" />
-          <div>
-            <p className="text-xs font-bold text-red-300">Crisis Mode</p>
-            <p className="text-[10px] text-red-400/70">Open a circle to activate</p>
-          </div>
         </div>
       </div>
 

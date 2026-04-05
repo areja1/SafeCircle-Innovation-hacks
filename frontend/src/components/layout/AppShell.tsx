@@ -14,7 +14,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-[calc(100vh-64px)]">
       <Sidebar />
-      <main className="flex-1 min-w-0 bg-[#F1F5F9]">
+      <main className="flex-1 min-w-0 bg-[#F1F5F9] dark:bg-slate-950 transition-colors">
         {children}
       </main>
     </div>

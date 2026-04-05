@@ -22,6 +22,11 @@ interface CrisisAccuracyBadgeProps {
   compact?: boolean
 }
 
+function toFiniteNumber(value: unknown, fallback = 0): number {
+  const n = typeof value === 'number' ? value : Number(value)
+  return Number.isFinite(n) ? n : fallback
+}
+
 export default function CrisisAccuracyBadge({
   crisisType,
   state,
@@ -52,7 +57,17 @@ export default function CrisisAccuracyBadge({
       if (!response.ok) throw new Error('Failed to fetch metrics')
       
       const data = await response.json()
-      setMetrics(data)
+      const gotNothingPct = Math.min(100, Math.max(0, toFiniteNumber(data?.got_nothing_percentage, 0)))
+
+      setMetrics({
+        total_feedbacks: toFiniteNumber(data?.total_feedbacks, 0),
+        accurate_count: toFiniteNumber(data?.accurate_count, 0),
+        accuracy_percentage: Math.min(100, Math.max(0, toFiniteNumber(data?.accuracy_percentage, 0))),
+        avg_suggested: data?.avg_suggested !== undefined ? toFiniteNumber(data.avg_suggested, 0) : undefined,
+        avg_actual: data?.avg_actual !== undefined ? toFiniteNumber(data.avg_actual, 0) : undefined,
+        got_nothing_percentage: gotNothingPct,
+        message: data?.message,
+      })
     } catch (error) {
       console.error('Error fetching accuracy metrics:', error)
     } finally {
@@ -82,9 +97,12 @@ export default function CrisisAccuracyBadge({
     )
   }
 
+  const accuracyPct = Math.min(100, Math.max(0, toFiniteNumber(metrics.accuracy_percentage, 0)))
+  const gotHelpPct = Math.min(100, Math.max(0, 100 - toFiniteNumber(metrics.got_nothing_percentage, 0)))
+
   const accuracyColor = 
-    metrics.accuracy_percentage >= 80 ? 'text-green-600' :
-    metrics.accuracy_percentage >= 60 ? 'text-yellow-600' :
+    accuracyPct >= 80 ? 'text-green-600' :
+    accuracyPct >= 60 ? 'text-yellow-600' :
     'text-orange-600'
 
   if (compact) {
@@ -92,7 +110,7 @@ export default function CrisisAccuracyBadge({
       <div className="flex items-center gap-2 text-sm">
         <Badge variant="secondary" className="flex items-center gap-1">
           <Target className="h-3 w-3" />
-          <span className={accuracyColor}>{metrics.accuracy_percentage}%</span> accurate
+          <span className={accuracyColor}>{accuracyPct}%</span> accurate
         </Badge>
         <span className="text-xs text-gray-500">
           ({metrics.total_feedbacks} verified)
@@ -116,7 +134,7 @@ export default function CrisisAccuracyBadge({
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
             <div className={`text-3xl font-bold ${accuracyColor}`}>
-              {metrics.accuracy_percentage}%
+              {accuracyPct}%
             </div>
             <p className="text-xs text-gray-600 mt-1">Accurate</p>
           </div>
@@ -130,7 +148,7 @@ export default function CrisisAccuracyBadge({
 
           <div className="text-center">
             <div className="text-3xl font-bold text-purple-600">
-              {100 - metrics.got_nothing_percentage}%
+              {gotHelpPct}%
             </div>
             <p className="text-xs text-gray-600 mt-1">Got Help</p>
           </div>

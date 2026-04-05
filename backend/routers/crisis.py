@@ -10,6 +10,30 @@ from typing import Optional, List
 router = APIRouter()
 
 
+def _to_number(value, default=0.0):
+    try:
+        if value is None:
+            return default
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _normalize_accuracy_metrics(row: dict):
+    accuracy_percentage = max(0.0, min(100.0, _to_number(row.get("accuracy_percentage"), 0.0)))
+    got_nothing_percentage = max(0.0, min(100.0, _to_number(row.get("got_nothing_percentage"), 0.0)))
+
+    return {
+        "total_feedbacks": int(_to_number(row.get("total_feedbacks"), 0)),
+        "accurate_count": int(_to_number(row.get("accurate_count", row.get("accurate_feedbacks")), 0)),
+        "accuracy_percentage": round(accuracy_percentage, 1),
+        "got_nothing_percentage": round(got_nothing_percentage, 1),
+        "avg_suggested": _to_number(row.get("avg_suggested"), 0.0),
+        "avg_actual": _to_number(row.get("avg_actual", row.get("avg_actual_amount")), 0.0),
+        "message": row.get("message"),
+    }
+
+
 @router.post("/start")
 def start_crisis(body: CrisisStartRequest, current_user: dict = Depends(get_current_user)):
     """
@@ -252,10 +276,11 @@ def get_accuracy_metrics(
             "total_feedbacks": 0,
             "accurate_count": 0,
             "accuracy_percentage": 0,
+            "got_nothing_percentage": 0,
             "message": "Not enough data yet. Be the first to provide feedback!",
         }
 
-    return metrics[0] if metrics else None
+    return _normalize_accuracy_metrics(metrics[0]) if metrics else None
 
 
 @router.get("/metrics/overall")
@@ -274,7 +299,7 @@ def get_overall_accuracy(current_user: dict = Depends(get_current_user)):
             "message": "Building trust through transparency - your feedback helps!",
         }
     
-    return result.data[0]
+    return _normalize_accuracy_metrics(result.data[0])
 
 
 @router.get("/feedback/history", response_model=List[CrisisFeedbackHistoryItem])

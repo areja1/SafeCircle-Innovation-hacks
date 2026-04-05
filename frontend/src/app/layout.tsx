@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} min-h-screen bg-[#F5F5F5]`}>
+      <body className={`${inter.className} min-h-screen`}>
         <I18nProvider>
           <Navbar />
           <AppShell>

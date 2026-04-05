@@ -10,7 +10,8 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner'
 import { Button } from '@/components/ui/button'
 import { submitRiskSurvey } from '@/lib/api'
 import type { SurveyAnswers } from '@/types'
-import { Scan, RefreshCw } from 'lucide-react'
+import { Scan, RefreshCw, ShieldAlert, PiggyBank, Users } from 'lucide-react'
+import { formatCurrency } from '@/lib/utils'
 
 interface RiskXRayTabProps {
   circleId: string
@@ -86,6 +87,43 @@ export default function RiskXRayTab({ circleId }: RiskXRayTabProps) {
           Rescan
         </Button>
       </div>
+
+      {(groupReport || report) && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="mb-2 flex items-center gap-2">
+              <div className="rounded-lg bg-red-50 p-2 text-red-600">
+                <ShieldAlert className="h-4 w-4" />
+              </div>
+              <p className="text-xs font-medium text-slate-500">Group risk score</p>
+            </div>
+            <p className="text-2xl font-black text-slate-900">{groupReport?.group_risk_score ?? 'N/A'}</p>
+            <p className="mt-1 text-xs text-slate-500">Higher score means higher vulnerability</p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="mb-2 flex items-center gap-2">
+              <div className="rounded-lg bg-amber-50 p-2 text-amber-600">
+                <PiggyBank className="h-4 w-4" />
+              </div>
+              <p className="text-xs font-medium text-slate-500">Unclaimed benefits</p>
+            </div>
+            <p className="text-2xl font-black text-slate-900">{formatCurrency(groupReport?.total_unclaimed_benefits ?? 0)}</p>
+            <p className="mt-1 text-xs text-slate-500">Estimated support not yet claimed</p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="mb-2 flex items-center gap-2">
+              <div className="rounded-lg bg-blue-50 p-2 text-[#2563EB]">
+                <Users className="h-4 w-4" />
+              </div>
+              <p className="text-xs font-medium text-slate-500">Members analyzed</p>
+            </div>
+            <p className="text-2xl font-black text-slate-900">{groupReport?.member_reports?.length ?? 0}</p>
+            <p className="mt-1 text-xs text-slate-500">Profiles included in this group scan</p>
+          </div>
+        </div>
+      )}
 
       {/* Individual results */}
       {report && <RiskResultsView report={report} />}

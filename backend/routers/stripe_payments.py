@@ -83,11 +83,24 @@ async def stripe_webhook(request: Request):
             if pool_id and user_id and amount_dollars > 0:
                 db = get_db()
                 amount_cents = amount_dollars * 100
+                session_id = session["id"]
+
+                # Idempotency: skip if this session was already processed
+                existing = (
+                    db.table("pool_contributions")
+                    .select("id")
+                    .eq("stripe_session_id", session_id)
+                    .execute()
+                )
+                if existing.data:
+                    print(f"[Stripe webhook] Already processed session {session_id}, skipping")
+                    return {"received": True}
 
                 db.table("pool_contributions").insert({
                     "pool_id": pool_id,
                     "user_id": user_id,
                     "amount": amount_cents,
+                    "stripe_session_id": session_id,
                 }).execute()
 
                 pool = db.table("emergency_pools").select("total_balance").eq("id", pool_id).maybe_single().execute()

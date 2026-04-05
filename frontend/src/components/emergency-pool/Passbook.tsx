@@ -18,8 +18,13 @@ export default function Passbook({ circleId }: { circleId: string }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    setLoading(true)
     getPassbook(circleId)
-      .then(res => setEntries(res.data || []))
+      .then(res => {
+        const data: PassbookEntry[] = res.data || []
+        const seen = new Set<string>()
+        setEntries(data.filter(e => seen.has(e.id) ? false : (seen.add(e.id), true)))
+      })
       .catch(() => setEntries([]))
       .finally(() => setLoading(false))
   }, [circleId])

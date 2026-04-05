@@ -69,6 +69,82 @@ def get_pool(circle_id: str, current_user: dict = Depends(get_current_user)):
     }
 
 
+@router.get("/circles/{circle_id}/pool/passbook")
+def get_passbook(circle_id: str, current_user: dict = Depends(get_current_user)):
+    """Return a chronological ledger of all pool credits and debits with running balance."""
+    db = get_db()
+    user_id = current_user["id"]
+    _verify_membership(circle_id, user_id)
+
+    pool = get_pool_for_circle(circle_id)
+    pool_id = pool["id"]
+
+    entries = []
+
+    # Credits: contributions
+    contributions = (
+        db.table("pool_contributions")
+        .select("id, user_id, amount, contributed_at")
+        .eq("pool_id", pool_id)
+        .execute()
+    )
+    for c in (contributions.data or []):
+        profile = (
+            db.table("profiles")
+            .select("full_name")
+            .eq("id", c["user_id"])
+            .maybe_single()
+            .execute()
+        )
+        name = profile.data["full_name"] if profile.data else "A member"
+        entries.append({
+            "id": f"contrib_{c['id']}",
+            "type": "credit",
+            "description": f"{name} contributed",
+            "amount": c["amount"] // 100,
+            "timestamp": c["contributed_at"],
+        })
+
+    # Debits: approved / released fund requests
+    requests = (
+        db.table("fund_requests")
+        .select("id, requested_by, amount, reason, status, created_at")
+        .eq("pool_id", pool_id)
+        .in_("status", ["approved", "released"])
+        .execute()
+    )
+    for r in (requests.data or []):
+        profile = (
+            db.table("profiles")
+            .select("full_name")
+            .eq("id", r["requested_by"])
+            .maybe_single()
+            .execute()
+        )
+        name = profile.data["full_name"] if profile.data else "A member"
+        entries.append({
+            "id": f"req_{r['id']}",
+            "type": "debit",
+            "description": f"{name} — {r['reason'] or 'Fund request'}",
+            "amount": r["amount"] // 100,
+            "timestamp": r["created_at"],
+        })
+
+    # Sort ascending to compute running balance
+    entries.sort(key=lambda x: x["timestamp"])
+    running = 0
+    for e in entries:
+        if e["type"] == "credit":
+            running += e["amount"]
+        else:
+            running -= e["amount"]
+        e["running_balance"] = running
+
+    # Return most recent first for display
+    entries.reverse()
+    return entries
+
+
 @router.post("/circles/{circle_id}/pool/contribute")
 def contribute(
     circle_id: str,

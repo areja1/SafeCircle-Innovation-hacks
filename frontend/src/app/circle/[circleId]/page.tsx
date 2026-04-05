@@ -18,7 +18,8 @@ import PoolTab from './PoolTab'
 import CrisisTab from './CrisisTab'
 import { Copy, Check, Users, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 export default function CircleDetailPage() {
   const { circleId } = useParams<{ circleId: string }>()
@@ -27,6 +28,14 @@ export default function CircleDetailPage() {
   const { groupReport } = useRiskData(circleId)
   const { data: poolData } = useEmergencyPool(circleId)
   const [copied, setCopied] = useState(false)
+  const searchParams = useSearchParams()
+  const [paymentBanner, setPaymentBanner] = useState<'success' | 'cancelled' | null>(null)
+
+  useEffect(() => {
+    const payment = searchParams.get('payment')
+    if (payment === 'success') setPaymentBanner('success')
+    else if (payment === 'cancelled') setPaymentBanner('cancelled')
+  }, [searchParams])
 
   if (circleLoading) return <PageLoader label="Loading circle..." />
   if (!circle) return <div className="text-center p-12 text-slate-500">Circle not found</div>
@@ -39,6 +48,26 @@ export default function CircleDetailPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Payment result banner */}
+      {paymentBanner === 'success' && (
+        <div className="bg-green-50 border border-green-200 rounded-2xl px-5 py-4 mb-4 flex items-center justify-between animate-fade-in">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🎉</span>
+            <div>
+              <p className="font-bold text-green-800">Payment successful!</p>
+              <p className="text-sm text-green-600">Your contribution has been added to the pool.</p>
+            </div>
+          </div>
+          <button onClick={() => setPaymentBanner(null)} className="text-green-400 hover:text-green-600 text-xl font-bold">×</button>
+        </div>
+      )}
+      {paymentBanner === 'cancelled' && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 mb-4 flex items-center justify-between animate-fade-in">
+          <p className="text-amber-800 font-medium">Payment cancelled — no charge was made.</p>
+          <button onClick={() => setPaymentBanner(null)} className="text-amber-400 hover:text-amber-600 text-xl font-bold">×</button>
+        </div>
+      )}
+
       {/* Back */}
       <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#2563EB] mb-6 transition-colors">
         <ArrowLeft className="w-4 h-4" />

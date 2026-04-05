@@ -10,7 +10,7 @@ import CrisisFeedbackHistory from '@/components/crisis/CrisisFeedbackHistory'
 import { startCrisis, completeStep, getCrisisSession } from '@/lib/api'
 import type { CrisisSession, CrisisType } from '@/types'
 import { Button } from '@/components/ui/button'
-import { Zap, RotateCcw, CheckCircle } from 'lucide-react'
+import { Zap, RotateCcw, CheckCircle, Clock3, ListChecks, Target } from 'lucide-react'
 
 // Per-circle localStorage key so different circles don't share a session
 const sessionKey = (id: string) => `crisis_session_${id}`
@@ -22,6 +22,11 @@ export default function CrisisTab({ circleId }: { circleId: string }) {
   const [selected, setSelected] = useState<CrisisType | null>(null)
   const [restoring, setRestoring] = useState(true)
   const [showFeedback, setShowFeedback] = useState(false)
+  const completedCount = session?.steps.filter(s => s.completed).length ?? 0
+  const remainingCount = session ? session.steps.length - completedCount : 0
+  const urgentOpenCount = session
+    ? session.steps.filter(s => !s.completed && (s.priority === 'red' || s.priority === 'orange')).length
+    : 0
 
   // On mount: check localStorage for an active session and restore it from the backend
   useEffect(() => {
@@ -118,6 +123,39 @@ export default function CrisisTab({ circleId }: { circleId: string }) {
           </div>
 
           <CrisisSelector onSelect={handleSelectCrisis} loading={loading} selected={selected} />
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="mb-2 flex items-center gap-2">
+                <div className="rounded-lg bg-blue-50 p-2 text-[#2563EB]">
+                  <Target className="h-4 w-4" />
+                </div>
+                <p className="text-xs font-medium text-slate-500">Prediction transparency</p>
+              </div>
+              <p className="text-sm font-semibold text-slate-900">Category-level estimates</p>
+              <p className="mt-1 text-xs text-slate-500">See where suggested money comes from before feedback.</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="mb-2 flex items-center gap-2">
+                <div className="rounded-lg bg-emerald-50 p-2 text-emerald-600">
+                  <ListChecks className="h-4 w-4" />
+                </div>
+                <p className="text-xs font-medium text-slate-500">Action quality</p>
+              </div>
+              <p className="text-sm font-semibold text-slate-900">Time-priority checklist</p>
+              <p className="mt-1 text-xs text-slate-500">Structured red/orange/yellow/green plan for faster outcomes.</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="mb-2 flex items-center gap-2">
+                <div className="rounded-lg bg-amber-50 p-2 text-amber-600">
+                  <Clock3 className="h-4 w-4" />
+                </div>
+                <p className="text-xs font-medium text-slate-500">Continuous improvement</p>
+              </div>
+              <p className="text-sm font-semibold text-slate-900">Feedback improves future predictions</p>
+              <p className="mt-1 text-xs text-slate-500">Your outcomes train better estimates for similar crises.</p>
+            </div>
+          </div>
           
           {/* Feedback History - Shows when no active crisis */}
           <div className="mt-6">
@@ -162,6 +200,41 @@ export default function CrisisTab({ circleId }: { circleId: string }) {
 
               {/* Don't sign alert */}
               <DontSignAlert />
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="rounded-lg bg-blue-50 p-2 text-[#2563EB]">
+                      <ListChecks className="h-4 w-4" />
+                    </div>
+                    <p className="text-xs font-medium text-slate-500">Checklist progress</p>
+                  </div>
+                  <p className="text-2xl font-black text-slate-900">{completedCount}/{session.steps.length}</p>
+                  <p className="mt-1 text-xs text-slate-500">{remainingCount} steps remaining</p>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="rounded-lg bg-red-50 p-2 text-red-600">
+                      <Clock3 className="h-4 w-4" />
+                    </div>
+                    <p className="text-xs font-medium text-slate-500">Urgent open steps</p>
+                  </div>
+                  <p className="text-2xl font-black text-slate-900">{urgentOpenCount}</p>
+                  <p className="mt-1 text-xs text-slate-500">Red/orange actions still incomplete</p>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="rounded-lg bg-emerald-50 p-2 text-emerald-600">
+                      <Target className="h-4 w-4" />
+                    </div>
+                    <p className="text-xs font-medium text-slate-500">Estimated impact</p>
+                  </div>
+                  <p className="text-2xl font-black text-slate-900">${session.estimated_savings.toLocaleString()}</p>
+                  <p className="mt-1 text-xs text-slate-500">Potential savings if steps are completed</p>
+                </div>
+              </div>
 
               {/* Timeline */}
               <TriageTimeline session={session} onStepComplete={handleStepComplete} />

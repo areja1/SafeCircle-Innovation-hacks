@@ -50,4 +50,7 @@ export const voteFunds = (circleId: string, data: { request_id: string; vote: bo
 // BENEFITS
 export const checkBenefits = (data: Record<string, unknown>) => api.get('/benefits/check', { params: data })
 
+// NOTIFICATIONS
+export const getNotifications = () => api.get('/notifications')
+
 export default api

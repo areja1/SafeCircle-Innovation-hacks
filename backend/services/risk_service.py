@@ -26,9 +26,14 @@ def run_risk_analysis(survey: dict, circle_members_data: list[dict]) -> dict:
     # Step 2: Enrich with Claude AI
     ai_result = analyze_risk(survey, circle_members_data)
 
-    # Step 3: Merge — engine score takes precedence if available, else use Claude's score
-    if engine_result.get("risk_score") is not None:
-        ai_result["risk_score"] = engine_result["risk_score"]
+    # Step 3: Merge — engine score takes precedence if available and non-zero
+    engine_score = engine_result.get("risk_score")
+    if engine_score is not None and engine_score > 0:
+        ai_result["risk_score"] = engine_score
+    # Ensure minimum score of 20 — no one has zero financial risk
+    if not ai_result.get("risk_score"):
+        ai_result["risk_score"] = 20
+    ai_result["risk_score"] = max(20, ai_result["risk_score"])
     if engine_result.get("gaps"):
         ai_result["gaps"] = engine_result["gaps"]
     if engine_result.get("poverty_tax_annual") is not None:

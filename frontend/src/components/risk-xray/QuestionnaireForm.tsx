@@ -47,6 +47,25 @@ const questions: Question[] = [
     type: 'yesno',
   },
   {
+    id: 'health_insurance_type',
+    title: 'What type of health insurance do you have?',
+    subtitle: 'Different plans have different coverage gaps',
+    type: 'choice',
+    dependsOn: { field: 'has_health_insurance', value: true },
+    options: [
+      { value: 'employer', label: 'Through my employer', emoji: '🏢' },
+      { value: 'marketplace', label: 'ACA / Marketplace plan', emoji: '🏪' },
+      { value: 'medicaid', label: 'Medicaid / Medicare', emoji: '🏥' },
+      { value: 'other', label: 'Other', emoji: '📋' },
+    ],
+  },
+  {
+    id: 'has_life_insurance',
+    title: 'Do you have life insurance?',
+    subtitle: 'Without it, your family faces $88,000+ in unexpected costs',
+    type: 'yesno',
+  },
+  {
     id: 'has_renters_insurance',
     title: 'Do you have renters insurance?',
     subtitle: "Your landlord's insurance does NOT cover your belongings",
@@ -63,6 +82,13 @@ const questions: Question[] = [
     title: 'Do you drive for DoorDash, Uber, Lyft, or similar apps?',
     subtitle: 'This is critical — regular auto insurance may not cover you while working',
     type: 'yesno',
+  },
+  {
+    id: 'household_size',
+    title: 'How many people are in your household?',
+    subtitle: 'Affects your benefit eligibility and safety net size',
+    type: 'number',
+    placeholder: '2',
   },
   {
     id: 'monthly_income',
@@ -111,14 +137,22 @@ const defaultAnswers: SurveyAnswers = {
   credit_score_range: 'unknown',
 }
 
+function getVisibleQuestions(answers: SurveyAnswers): Question[] {
+  return questions.filter(q => {
+    if (!q.dependsOn) return true
+    return answers[q.dependsOn.field] === q.dependsOn.value
+  })
+}
+
 export default function QuestionnaireForm({ onSubmit, loading }: QuestionnaireFormProps) {
   const { t } = useTranslation()
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<SurveyAnswers>(defaultAnswers)
   const [inputVal, setInputVal] = useState('')
 
-  const q = questions[step]
-  const total = questions.length
+  const visibleQuestions = getVisibleQuestions(answers)
+  const q = visibleQuestions[step]
+  const total = visibleQuestions.length
   const isLast = step === total - 1
 
   const handleChoice = (value: string) => {
@@ -127,7 +161,12 @@ export default function QuestionnaireForm({ onSubmit, loading }: QuestionnaireFo
   }
 
   const handleYesNo = (value: boolean) => {
-    setAnswers(prev => ({ ...prev, [q.id]: value }))
+    const updated = { ...answers, [q.id]: value }
+    // If user says No to health insurance, reset type to 'none'
+    if (q.id === 'has_health_insurance' && !value) {
+      updated.health_insurance_type = 'none'
+    }
+    setAnswers(updated)
     if (!isLast) setTimeout(() => setStep(s => s + 1), 200)
   }
 

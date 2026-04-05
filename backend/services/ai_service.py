@@ -1,8 +1,11 @@
 import json
+import logging
+import time
 import anthropic
 from config import ANTHROPIC_API_KEY
 
 client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+logger = logging.getLogger(__name__)
 
 CLAUDE_MODEL = "claude-sonnet-4-20250514"
 
@@ -13,7 +16,42 @@ def _parse_json_response(text: str) -> dict:
         text = text.split("```json")[1].split("```")[0]
     elif "```" in text:
         text = text.split("```")[1].split("```")[0]
-    return json.loads(text.strip())
+    cleaned = text.strip()
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        # Recover when model adds prose around JSON.
+        obj_start = cleaned.find("{")
+        obj_end = cleaned.rfind("}")
+        if obj_start != -1 and obj_end != -1 and obj_end > obj_start:
+            return json.loads(cleaned[obj_start:obj_end + 1])
+        raise
+
+
+def _request_claude_json(prompt: str, max_tokens: int) -> dict:
+    last_error: Exception | None = None
+
+    for attempt in range(3):
+        try:
+            response = client.messages.create(
+                model=CLAUDE_MODEL,
+                max_tokens=max_tokens,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return _parse_json_response(response.content[0].text)
+        except anthropic.APIConnectionError as e:
+            last_error = e
+            if attempt < 2:
+                time.sleep(1.5 * (attempt + 1))
+                continue
+            raise
+        except Exception as e:
+            last_error = e
+            raise
+
+    if last_error:
+        raise last_error
+    raise RuntimeError("Unknown Claude request error")
 
 
 def _fallback_risk(survey_data: dict, circle_members_data: list[dict]) -> dict:
@@ -123,6 +161,29 @@ def _fallback_crisis_triage(crisis_type: str, state: str) -> dict:
             },
         ],
         "estimated_total_savings": 17000,
+        "savings_breakdown": [
+            {
+                "category": "insurance_claim",
+                "category_label": "Insurance Payout",
+                "estimated_amount": 10000,
+                "description": "Estimated insurance settlement for damages",
+                "timeframe": "30-90 days after claim approval"
+            },
+            {
+                "category": "settlement_difference",
+                "category_label": "Fair Settlement vs Early Offer",
+                "estimated_amount": 5000,
+                "description": "Additional amount by waiting for fair settlement",
+                "timeframe": "60-120 days"
+            },
+            {
+                "category": "emergency_assistance",
+                "category_label": "Emergency Assistance",
+                "estimated_amount": 2000,
+                "description": "Local emergency programs and community support",
+                "timeframe": "Immediate to 2 weeks"
+            },
+        ],
         "dont_sign_warning": "Do not sign any settlement agreements or releases without reviewing them carefully. Early offers are often 40% below fair value. You have the right to review all documents.",
     }
 
@@ -187,20 +248,16 @@ def analyze_risk(survey_data: dict, circle_members_data: list[dict]) -> dict:
     """
 
     try:
-        response = client.messages.create(
-            model=CLAUDE_MODEL,
-            max_tokens=2000,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return _parse_json_response(response.content[0].text)
+        return _request_claude_json(prompt, max_tokens=2000)
     except Exception:
+        logger.exception("Claude risk analysis failed; using fallback output.")
         return _fallback_risk(survey_data, circle_members_data)
 
 
 def generate_crisis_triage(crisis_type: str, state: str, user_context: dict = None) -> dict:
     """
     Generate AI-personalized crisis triage steps for a given crisis type and state.
-    Returns structured triage plan with time-sequenced steps.
+    Returns structured triage plan with time-sequenced steps and benefit breakdown.
     Falls back to a static playbook if Claude is unavailable.
     """
     prompt = f"""You are a financial first responder. Someone just experienced a {crisis_type} in {state}.
@@ -224,6 +281,15 @@ def generate_crisis_triage(crisis_type: str, state: str, user_context: dict = No
             }}
         ],
         "estimated_total_savings": <total dollars saved by following all steps>,
+        "savings_breakdown": [
+            {{
+                "category": "<short_category_id like unemployment_benefits>",
+                "category_label": "<display name like 'Unemployment Benefits'>",
+                "estimated_amount": <dollar amount>,
+                "description": "<what this is and how to get it>",
+                "timeframe": "<when you'd receive this, e.g. 'Weekly for 26 weeks'>"
+            }}
+        ],
         "dont_sign_warning": "<specific warning about what NOT to sign or agree to>"
     }}
 
@@ -233,7 +299,17 @@ def generate_crisis_triage(crisis_type: str, state: str, user_context: dict = No
     - YELLOW (24-72 hours): Insurance filing, benefits applications, budget adjustment
     - GREEN (1-4 weeks): Long-term planning, settlement negotiations, recovery
 
-    RULES:
+    SAVINGS BREAKDOWN RULES:
+    - Break down estimated_total_savings into specific benefit categories
+    - Common categories: unemployment_benefits, snap, medicaid, tax_credits, emergency_assistance, insurance_payout, legal_settlement, housing_assistance, utility_assistance, etc.
+    - Each category should have a clear dollar amount users can verify later
+    - Include 3-8 categories depending on crisis type
+    - For job loss: unemployment, SNAP, EITC, emergency rental assistance, utility assistance
+    - For medical: charity care, No Surprises Act savings, insurance coverage, emergency medicaid
+    - For car accident: insurance payout, diminished value claim, medical payments, lost wages
+    - For housing: security deposit return, insurance claim, emergency assistance, legal damages
+
+    GENERAL RULES:
     - 8-12 steps total across all priorities
     - Include state-specific info for {state} (filing deadlines, programs, URLs)
     - Include real dollar amounts for cost_of_not_doing
@@ -246,11 +322,7 @@ def generate_crisis_triage(crisis_type: str, state: str, user_context: dict = No
     """
 
     try:
-        response = client.messages.create(
-            model=CLAUDE_MODEL,
-            max_tokens=2000,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return _parse_json_response(response.content[0].text)
+        return _request_claude_json(prompt, max_tokens=2500)
     except Exception:
+        logger.exception("Claude crisis triage failed; using fallback output.")
         return _fallback_crisis_triage(crisis_type, state)

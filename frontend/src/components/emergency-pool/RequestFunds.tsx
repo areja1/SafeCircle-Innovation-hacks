@@ -109,7 +109,7 @@ export default function RequestFunds({ circleId, maxAmount, onSuccess, onClose }
 
           {error && <p className="text-xs text-red-500">{error}</p>}
 
-          <Button onClick={handleSubmit} disabled={loading} className="w-full" size="lg">
+          <Button onClick={handleSubmit} disabled={loading} className="mx-auto w-full sm:w-auto sm:min-w-[200px]" size="lg">
             {loading ? 'Submitting...' : 'Submit Request'}
           </Button>
         </div>

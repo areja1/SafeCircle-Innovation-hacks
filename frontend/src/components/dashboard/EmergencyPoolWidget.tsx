@@ -42,8 +42,8 @@ export default function EmergencyPoolWidget({ pool, circleId, memberCount = 1 }:
       />
       <p className="text-xs text-blue-200 mb-4">{Math.round(progressPct)}% of 3-month safety goal</p>
 
-      <Link href={`/circle/${circleId}/emergency-pool`}>
-        <Button variant="outline" size="sm" className="w-full border-white text-white hover:bg-white/20 gap-2 bg-transparent">
+      <Link href={`/circle/${circleId}/emergency-pool`} className="inline-flex">
+        <Button variant="outline" size="sm" className="border-white text-white hover:bg-white/20 gap-2 bg-transparent">
           <Plus className="w-4 h-4" />
           {t('pool.contribute')}
         </Button>

@@ -96,12 +96,32 @@ export interface Benefit {
 
 export type CrisisType = 'car_accident' | 'job_loss' | 'medical_emergency' | 'death_in_family' | 'home_damage';
 
+export interface SavingsBreakdownItem {
+  category: string;
+  category_label: string;
+  estimated_amount: number;
+  description: string;
+  timeframe?: string;
+}
+
+export interface CategoryFeedbackItem {
+  category: string;
+  category_label: string;
+  suggested_amount: number;
+  received: boolean;
+  actual_amount?: number | null;
+  notes?: string;
+}
+
 export interface CrisisSession {
   id: string;
   crisis_type: CrisisType;
   started_at: string;
   steps: TriageStep[];
   estimated_savings: number;
+  savings_breakdown?: SavingsBreakdownItem[];
+  feedback_submitted?: boolean;
+  dont_sign_warning?: string;
 }
 
 export interface TriageStep {

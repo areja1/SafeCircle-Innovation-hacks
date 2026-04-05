@@ -5,6 +5,7 @@ import I18nProvider from '@/components/providers/I18nProvider'
 import Navbar from '@/components/layout/Navbar'
 import AppShell from '@/components/layout/AppShell'
 import ChatWidget from '@/components/chat/ChatWidget'
+import { Toaster } from '@/components/ui/toaster'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </AppShell>
           <ChatWidget />
+          <Toaster />
         </I18nProvider>
       </body>
     </html>

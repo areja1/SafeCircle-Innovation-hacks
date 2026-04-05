@@ -1,10 +1,11 @@
 import uuid
 from fastapi import APIRouter, HTTPException, Depends
-from models.schemas import CrisisStartRequest, StepCompleteRequest
+from models.schemas import CrisisStartRequest, StepCompleteRequest, CrisisFeedbackRequest, CrisisAccuracyMetrics, CrisisFeedbackHistoryItem
 from models.database import get_db
 from routers.deps import get_current_user
 from services.crisis_service import run_crisis_triage
 from datetime import datetime, timezone
+from typing import Optional, List
 
 router = APIRouter()
 
@@ -46,6 +47,7 @@ def start_crisis(body: CrisisStartRequest, current_user: dict = Depends(get_curr
         "triage_steps": steps,
         "completed_steps": [],
         "estimated_savings": triage.get("estimated_total_savings", 0),
+        "savings_breakdown": triage.get("savings_breakdown", []),
         "dont_sign_warning": dont_sign_warning,
     }).execute()
 
@@ -62,6 +64,7 @@ def start_crisis(body: CrisisStartRequest, current_user: dict = Depends(get_curr
         "started_at": str(started_at),
         "steps": steps,
         "estimated_savings": triage.get("estimated_total_savings", 0),
+        "savings_breakdown": triage.get("savings_breakdown", []),
         "dont_sign_warning": dont_sign_warning,
     }
 
@@ -97,7 +100,9 @@ def get_crisis_session(session_id: str, current_user: dict = Depends(get_current
         "started_at": str(row["started_at"]),
         "steps": steps,
         "estimated_savings": row["estimated_savings"],
+        "savings_breakdown": row.get("savings_breakdown", []),
         "dont_sign_warning": row.get("dont_sign_warning"),
+        "feedback_submitted": row.get("feedback_submitted", False),
     }
 
 
@@ -133,3 +138,160 @@ def complete_step(
     db.table("crisis_sessions").update({"completed_steps": completed_steps}).eq("id", session_id).execute()
 
     return {"session_id": session_id, "step_id": body.step_id, "completed": body.completed}
+
+
+@router.post("/{session_id}/feedback")
+def submit_crisis_feedback(
+    session_id: str,
+    body: CrisisFeedbackRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Submit feedback on crisis suggestion accuracy.
+    Helps improve future AI suggestions.
+    """
+    db = get_db()
+    user_id = current_user["id"]
+
+    # Verify session belongs to user
+    session = (
+        db.table("crisis_sessions")
+        .select("id, crisis_type, state, estimated_savings")
+        .eq("id", session_id)
+        .eq("user_id", user_id)
+        .maybe_single()
+        .execute()
+    )
+
+    if not session.data:
+        raise HTTPException(status_code=404, detail="Crisis session not found")
+
+    session_data = session.data
+
+    category_feedback = []
+    for item in body.category_feedback:
+        if hasattr(item, "model_dump"):
+            category_feedback.append(item.model_dump())
+        elif hasattr(item, "dict"):
+            category_feedback.append(item.dict())
+        else:
+            category_feedback.append(item)
+
+    # Insert feedback
+    feedback_data = {
+        "session_id": session_id,
+        "user_id": user_id,
+        "suggested_amount": body.suggested_amount,
+        "was_accurate": body.was_accurate,
+        "actual_amount": body.actual_amount,
+        "got_nothing": body.got_nothing,
+        "feedback_notes": body.feedback_notes,
+        "category_feedback": category_feedback,
+        "crisis_type": session_data["crisis_type"],
+        "state": session_data["state"],
+    }
+
+    db.table("crisis_feedback").insert(feedback_data).execute()
+
+    calculated_actual = body.actual_amount
+    if category_feedback:
+        calculated_total = sum(
+            float(item.get("actual_amount") or 0)
+            for item in category_feedback
+            if item.get("received")
+        )
+        if calculated_total == 0:
+            calculated_actual = None
+        else:
+            calculated_actual = int(round(calculated_total))
+    elif calculated_actual is not None:
+        calculated_actual = int(calculated_actual)
+
+    # Mark session as feedback submitted
+    db.table("crisis_sessions").update({
+        "feedback_submitted": True,
+        "actual_outcome_amount": calculated_actual,
+    }).eq("id", session_id).execute()
+
+    return {
+        "message": "Thank you! Your feedback helps us improve.",
+        "feedback_submitted": True,
+    }
+
+
+@router.get("/metrics/accuracy")
+def get_accuracy_metrics(
+    crisis_type: Optional[str] = None,
+    state: Optional[str] = None,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Get accuracy metrics for crisis suggestions.
+    Can filter by crisis_type and/or state.
+    """
+    db = get_db()
+
+    if crisis_type or state:
+        # Get specific metrics
+        query = db.table("crisis_accuracy_metrics").select("*")
+        
+        if crisis_type:
+            query = query.eq("crisis_type", crisis_type)
+        if state:
+            query = query.eq("state", state)
+        
+        result = query.execute()
+        metrics = result.data
+    else:
+        # Get overall accuracy
+        result = db.table("crisis_overall_accuracy").select("*").execute()
+        metrics = result.data
+
+    if not metrics:
+        return {
+            "total_feedbacks": 0,
+            "accurate_count": 0,
+            "accuracy_percentage": 0,
+            "message": "Not enough data yet. Be the first to provide feedback!",
+        }
+
+    return metrics[0] if metrics else None
+
+
+@router.get("/metrics/overall")
+def get_overall_accuracy(current_user: dict = Depends(get_current_user)):
+    """Get overall crisis prediction accuracy across all types."""
+    db = get_db()
+    
+    result = db.table("crisis_overall_accuracy").select("*").execute()
+    
+    if not result.data:
+        return {
+            "total_feedbacks": 0,
+            "accurate_count": 0,
+            "accuracy_percentage": 0,
+            "got_nothing_percentage": 0,
+            "message": "Building trust through transparency - your feedback helps!",
+        }
+    
+    return result.data[0]
+
+
+@router.get("/feedback/history", response_model=List[CrisisFeedbackHistoryItem])
+def get_feedback_history(current_user: dict = Depends(get_current_user)):
+    """
+    Get the current user's crisis feedback history.
+    Shows what was suggested vs what they actually received for each crisis.
+    """
+    db = get_db()
+    user_id = current_user["id"]
+    
+    result = (
+        db.table("crisis_feedback")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+    
+    return result.data

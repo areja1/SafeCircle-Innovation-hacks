@@ -250,8 +250,8 @@ function CircleCard({ circle }: { circle: Circle }) {
           </button>
         </div>
 
-        <Link href={`/circle/${circle.id}`}>
-          <Button className="w-full gap-2 group-hover:gap-3 transition-all" size="sm">
+        <Link href={`/circle/${circle.id}`} className="inline-flex">
+          <Button className="gap-2 group-hover:gap-3 transition-all" size="sm">
             {t('dashboard.viewCircle')}
             <ArrowRight className="w-4 h-4" />
           </Button>

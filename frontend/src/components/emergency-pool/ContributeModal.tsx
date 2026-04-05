@@ -101,7 +101,7 @@ export default function ContributeModal({ circleId, targetAmount = 25, onSuccess
 
               {error && <p className="text-xs text-red-500 mb-3">{error}</p>}
 
-              <Button onClick={handleSubmit} disabled={loading} className="w-full gap-2" size="lg">
+              <Button onClick={handleSubmit} disabled={loading} className="mx-auto w-full sm:w-auto sm:min-w-[220px] gap-2" size="lg">
                 {loading ? 'Redirecting to payment...' : `Pay $${amount || '...'} via Stripe`}
               </Button>
             </>

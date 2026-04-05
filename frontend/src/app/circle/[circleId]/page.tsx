@@ -109,11 +109,11 @@ export default function CircleDetailPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview">
-        <TabsList className="w-full sm:w-auto flex overflow-x-auto">
-          <TabsTrigger value="overview" className="flex-1 sm:flex-none">{t('circle.overview')}</TabsTrigger>
-          <TabsTrigger value="risk-xray" className="flex-1 sm:flex-none">{t('circle.riskXray')}</TabsTrigger>
-          <TabsTrigger value="pool" className="flex-1 sm:flex-none">{t('circle.emergencyPool')}</TabsTrigger>
-          <TabsTrigger value="crisis" className="flex-1 sm:flex-none">{t('circle.crisisMode')}</TabsTrigger>
+        <TabsList className="w-full sm:w-auto flex flex-wrap gap-1 overflow-x-auto">
+          <TabsTrigger value="overview">{t('circle.overview')}</TabsTrigger>
+          <TabsTrigger value="risk-xray">{t('circle.riskXray')}</TabsTrigger>
+          <TabsTrigger value="pool">{t('circle.emergencyPool')}</TabsTrigger>
+          <TabsTrigger value="crisis">{t('circle.crisisMode')}</TabsTrigger>
         </TabsList>
 
         {/* OVERVIEW */}

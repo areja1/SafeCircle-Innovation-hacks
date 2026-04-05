@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List, Literal
 from datetime import datetime
 
@@ -51,6 +51,33 @@ class CrisisStartRequest(BaseModel):
 class StepCompleteRequest(BaseModel):
     step_id: str
     completed: bool = True
+
+
+class CrisisSavingsBreakdownItem(BaseModel):
+    category: str
+    category_label: str
+    estimated_amount: float
+    description: str
+    timeframe: Optional[str] = None
+
+
+class CrisisCategoryFeedbackItem(BaseModel):
+    category: str
+    category_label: str
+    suggested_amount: float
+    received: bool
+    actual_amount: Optional[float] = None
+    notes: Optional[str] = None
+
+
+class CrisisFeedbackRequest(BaseModel):
+    session_id: str
+    suggested_amount: int
+    was_accurate: bool
+    actual_amount: Optional[int] = None  # If not accurate, what they got
+    got_nothing: bool = False  # True if they received nothing
+    feedback_notes: Optional[str] = None  # Additional context
+    category_feedback: List[CrisisCategoryFeedbackItem] = Field(default_factory=list)
 
 
 class ContributeRequest(BaseModel):
@@ -149,7 +176,33 @@ class CrisisSessionResponse(BaseModel):
     started_at: str
     steps: List[TriageStepResponse]
     estimated_savings: int
+    savings_breakdown: List[CrisisSavingsBreakdownItem] = Field(default_factory=list)
     dont_sign_warning: Optional[str] = None
+    feedback_submitted: bool = False
+
+
+class CrisisFeedbackHistoryItem(BaseModel):
+    id: str
+    crisis_type: str
+    state: str
+    suggested_amount: float
+    was_accurate: bool
+    actual_amount: Optional[float] = None
+    got_nothing: bool = False
+    feedback_notes: Optional[str] = None
+    category_feedback: List[CrisisCategoryFeedbackItem] = Field(default_factory=list)
+    created_at: str
+
+
+class CrisisAccuracyMetrics(BaseModel):
+    crisis_type: Optional[str] = None
+    state: Optional[str] = None
+    total_feedbacks: int
+    accurate_count: int
+    accuracy_percentage: float
+    avg_suggested: Optional[float] = None
+    avg_actual: Optional[float] = None
+    got_nothing_percentage: float
 
 
 class CircleMemberResponse(BaseModel):

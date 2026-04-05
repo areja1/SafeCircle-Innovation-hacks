@@ -104,23 +104,18 @@ def get_analytics(circle_id: str, current_user: dict = Depends(get_current_user)
         first_name = name.split()[0] if name else "Member"
         risk_scores.append({"name": first_name, "score": r["risk_score"]})
 
-    # ── Pool growth (running balance over contribution dates) ────────────────
+    # ── Pool growth (running balance, one point per contribution) ───────────
     pool_growth = []
     running = 0
     for c in contributions:
         running += c["amount"] // 100
         raw_date = c.get("contributed_at") or ""
         try:
-            date_label = datetime.fromisoformat(raw_date[:10]).strftime("%b %d")
+            dt = datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
+            date_label = dt.strftime("%b %d %H:%M")
         except Exception:
-            date_label = raw_date[:10]
+            date_label = raw_date[:16]
         pool_growth.append({"date": date_label, "balance": running})
-
-    # Deduplicate same-day entries — keep last balance for each date
-    seen: dict = {}
-    for point in pool_growth:
-        seen[point["date"]] = point["balance"]
-    pool_growth = [{"date": d, "balance": b} for d, b in seen.items()]
 
     # ── Contributions by member ───────────────────────────────────────────────
     member_totals: dict = defaultdict(int)

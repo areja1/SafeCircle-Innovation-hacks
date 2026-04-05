@@ -39,12 +39,15 @@ yarn-error.log*
 
 # ---- Environment files ----
 .env
-.env.example
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 *.env
+# .env.example files are intentionally committed (empty-value templates)
+!.env.example
+!*.env.example
+!.env.local.example
 
 # ---- OS ----
 .DS_Store

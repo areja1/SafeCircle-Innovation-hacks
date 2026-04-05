@@ -53,6 +53,7 @@ def submit_risk_survey(
         "benefits_eligible": ai_result.get("benefits_eligible", []),
         "poverty_tax_annual": ai_result.get("poverty_tax_annual", 0),
         "ai_analysis": ai_result.get("ai_analysis", ""),
+        "group_insights": ai_result.get("group_insights", []),
     }
 
     db.table("risk_surveys").upsert(upsert_data, on_conflict="user_id,circle_id").execute()
@@ -93,6 +94,7 @@ def get_risk_report(circle_id: str, current_user: dict = Depends(get_current_use
         "benefits_eligible": row["benefits_eligible"] or [],
         "poverty_tax_annual": row["poverty_tax_annual"],
         "ai_analysis": row["ai_analysis"],
+        "group_insights": row.get("group_insights") or [],
     }
 
 

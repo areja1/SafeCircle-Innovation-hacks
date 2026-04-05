@@ -40,8 +40,8 @@ export default function RequestFunds({ circleId, maxAmount, onSuccess, onClose }
       await requestFunds(circleId, { amount: num, reason, crisis_type: crisisType })
       onSuccess?.()
       onClose()
-    } catch {
-      setError('Failed to submit request. Please try again.')
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || 'Failed to submit request. Please try again.')
     } finally {
       setLoading(false)
     }

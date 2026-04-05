@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/useAuth'
 import { useCircles } from '@/hooks/useCircle'
 import { PageLoader } from '@/components/shared/LoadingSpinner'
-import { createCircle, joinCircle } from '@/lib/api'
+import { createCircle, joinCircleByCode } from '@/lib/api'
 import { getRiskColor } from '@/lib/utils'
 import { formatCurrency } from '@/lib/utils'
 import type { Circle } from '@/types'
@@ -61,9 +61,7 @@ export default function DashboardPage() {
     setJoining(true)
     setError('')
     try {
-      // We need a circleId — for now join via a search; in real app backend handles it
-      // Use a placeholder endpoint
-      await joinCircle('lookup', inviteCode)
+      await joinCircleByCode(inviteCode.toUpperCase())
       await refetch()
       setShowJoin(false)
       setInviteCode('')

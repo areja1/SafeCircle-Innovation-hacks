@@ -1,14 +1,20 @@
+import random
+import string
 from fastapi import APIRouter, HTTPException, Depends
 from models.schemas import CreateCircleRequest, JoinCircleRequest, CircleResponse
 from models.database import get_db
 from routers.deps import get_current_user
+
+
+def generate_invite_code(length: int = 8) -> str:
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
 router = APIRouter()
 
 
 @router.get("")
 def list_circles(current_user: dict = Depends(get_current_user)):
-    """Return all circles the current user belongs to."""
+    """Return all circles the current user belongs to, with member count and pool."""
     db = get_db()
     user_id = current_user["id"]
 
@@ -29,7 +35,32 @@ def list_circles(current_user: dict = Depends(get_current_user)):
         .in_("id", circle_ids)
         .execute()
     )
-    return circles.data
+
+    result = []
+    for circle in circles.data:
+        cid = circle["id"]
+
+        member_rows = (
+            db.table("circle_members")
+            .select("id")
+            .eq("circle_id", cid)
+            .execute()
+        )
+
+        pool_rows = (
+            db.table("emergency_pools")
+            .select("id, total_balance, target_monthly_per_member")
+            .eq("circle_id", cid)
+            .execute()
+        )
+
+        result.append({
+            **circle,
+            "members": [{"id": m["id"]} for m in member_rows.data],
+            "pool": pool_rows.data[0] if pool_rows.data else None,
+        })
+
+    return result
 
 
 @router.post("")
@@ -40,7 +71,12 @@ def create_circle(body: CreateCircleRequest, current_user: dict = Depends(get_cu
 
     circle = (
         db.table("circles")
-        .insert({"name": body.name, "description": body.description, "created_by": user_id})
+        .insert({
+            "name": body.name,
+            "description": body.description,
+            "created_by": user_id,
+            "invite_code": generate_invite_code(),
+        })
         .execute()
     )
     new_circle = circle.data[0]
@@ -126,6 +162,44 @@ def get_circle(circle_id: str, current_user: dict = Depends(get_current_user)):
         "members": members,
         "pool": pool.data[0] if pool.data else None,
     }
+
+
+@router.post("/join-by-code")
+def join_circle_by_code(body: JoinCircleRequest, current_user: dict = Depends(get_current_user)):
+    """Join a circle using only the invite code (no circle_id needed)."""
+    db = get_db()
+    user_id = current_user["id"]
+
+    code = body.invite_code.strip().upper()
+    circle = (
+        db.table("circles")
+        .select("id, invite_code")
+        .ilike("invite_code", code)
+        .execute()
+    )
+    if not circle.data:
+        raise HTTPException(status_code=404, detail="Circle not found. Check the invite code.")
+    circle_data = circle.data[0]
+
+    circle_id = circle_data["id"]
+
+    existing = (
+        db.table("circle_members")
+        .select("id")
+        .eq("circle_id", circle_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+    if existing.data:
+        raise HTTPException(status_code=400, detail="Already a member of this circle")
+
+    db.table("circle_members").insert({
+        "circle_id": circle_id,
+        "user_id": user_id,
+        "role": "member",
+    }).execute()
+
+    return {"message": "Joined circle successfully", "circle_id": circle_id}
 
 
 @router.post("/{circle_id}/join")

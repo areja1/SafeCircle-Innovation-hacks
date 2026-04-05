@@ -65,7 +65,7 @@ def get_pool(circle_id: str, current_user: dict = Depends(get_current_user)):
     return {
         "pool": pool,
         "contributions": contributions_formatted,
-        "fund_requests": fund_requests_formatted,
+        "requests": fund_requests_formatted,
     }
 
 

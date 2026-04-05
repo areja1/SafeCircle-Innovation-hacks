@@ -4,6 +4,7 @@ from models.schemas import CrisisStartRequest, StepCompleteRequest
 from models.database import get_db
 from routers.deps import get_current_user
 from services.crisis_service import run_crisis_triage
+from datetime import datetime, timezone
 
 router = APIRouter()
 
@@ -35,8 +36,9 @@ def start_crisis(body: CrisisStartRequest, current_user: dict = Depends(get_curr
         step.setdefault("completed", False)
 
     session_id = str(uuid.uuid4())
+    dont_sign_warning = triage.get("dont_sign_warning")
 
-    db.table("crisis_sessions").insert({
+    result = db.table("crisis_sessions").insert({
         "id": session_id,
         "user_id": user_id,
         "crisis_type": body.crisis_type,
@@ -44,15 +46,23 @@ def start_crisis(body: CrisisStartRequest, current_user: dict = Depends(get_curr
         "triage_steps": steps,
         "completed_steps": [],
         "estimated_savings": triage.get("estimated_total_savings", 0),
+        "dont_sign_warning": dont_sign_warning,
     }).execute()
+
+    # Use the real DB timestamp; fall back to Python UTC if not returned
+    started_at = (
+        result.data[0]["started_at"]
+        if result.data and result.data[0].get("started_at")
+        else datetime.now(timezone.utc).isoformat()
+    )
 
     return {
         "id": session_id,
         "crisis_type": body.crisis_type,
-        "started_at": "now",
+        "started_at": str(started_at),
         "steps": steps,
         "estimated_savings": triage.get("estimated_total_savings", 0),
-        "dont_sign_warning": triage.get("dont_sign_warning"),
+        "dont_sign_warning": dont_sign_warning,
     }
 
 
@@ -87,6 +97,7 @@ def get_crisis_session(session_id: str, current_user: dict = Depends(get_current
         "started_at": str(row["started_at"]),
         "steps": steps,
         "estimated_savings": row["estimated_savings"],
+        "dont_sign_warning": row.get("dont_sign_warning"),
     }
 
 

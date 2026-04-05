@@ -14,11 +14,18 @@ export function useRiskData(circleId: string) {
     if (!circleId) return
     try {
       setLoading(true)
-      const [reportRes, groupRes] = await Promise.all([
-        getRiskReport(circleId),
+
+      // Fetch individually so a 404 on the personal report (survey not yet submitted)
+      // doesn't kill the group summary fetch.
+      const [reportResult, groupRes] = await Promise.all([
+        getRiskReport(circleId).catch((err) => {
+          if (err?.response?.status === 404) return null  // no survey yet — expected
+          throw err
+        }),
         getGroupRiskSummary(circleId),
       ])
-      setReport(reportRes.data)
+
+      setReport(reportResult ? reportResult.data : null)
       setGroupReport(groupRes.data)
     } catch {
       setError('Failed to load risk data')

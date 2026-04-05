@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
-import { LayoutDashboard, User, Shield, LogOut, ChevronRight, Plus, Zap, BookOpen } from 'lucide-react'
+import { LayoutDashboard, User, Shield, LogOut, ChevronRight, Plus, Zap, BookOpen, BarChart2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { useCircles } from '@/hooks/useCircle'
@@ -44,6 +44,7 @@ export default function Sidebar() {
           {[
             { href: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard') },
             { href: '/passbook', icon: BookOpen, label: 'Passbook' },
+            { href: '/analytics', icon: BarChart2, label: 'Analytics' },
             { href: '/profile', icon: User, label: t('nav.profile') },
           ].map(({ href, icon: Icon, label }) => (
             <Link

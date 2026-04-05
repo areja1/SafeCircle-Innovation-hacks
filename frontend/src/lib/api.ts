@@ -47,6 +47,7 @@ export const requestFunds = (circleId: string, data: { amount: number; reason: s
 export const voteFunds = (circleId: string, data: { request_id: string; vote: boolean }) =>
   api.post(`/circles/${circleId}/pool/vote`, data)
 export const getPassbook = (circleId: string) => api.get(`/circles/${circleId}/pool/passbook`)
+export const getAnalytics = (circleId: string) => api.get(`/circles/${circleId}/analytics`)
 
 // BENEFITS
 export const checkBenefits = (data: Record<string, unknown>) => api.get('/benefits/check', { params: data })

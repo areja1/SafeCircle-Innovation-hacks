@@ -254,7 +254,10 @@ export default function AnalyticsPage() {
               <p className="text-sm text-slate-400 text-center py-8">No contribution data yet</p>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
-                <AreaChart data={data.pool_growth} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
+                <AreaChart
+                  data={[{ date: 'Start', balance: 0 }, ...data.pool_growth]}
+                  margin={{ top: 4, right: 8, left: 8, bottom: 0 }}
+                >
                   <defs>
                     <linearGradient id="balanceGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#CC0000" stopOpacity={0.15} />

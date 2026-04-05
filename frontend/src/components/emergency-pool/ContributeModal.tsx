@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { X, DollarSign, Heart } from 'lucide-react'
-import { contribute } from '@/lib/api'
+import { createCheckoutSession } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
 interface ContributeModalProps {
@@ -30,12 +30,10 @@ export default function ContributeModal({ circleId, targetAmount = 25, onSuccess
     setLoading(true)
     setError('')
     try {
-      await contribute(circleId, num)
-      setSuccess(true)
-      setTimeout(() => { onSuccess?.(); onClose() }, 1500)
-    } catch {
-      setError('Failed to contribute. Please try again.')
-    } finally {
+      const res = await createCheckoutSession(circleId, num)
+      window.location.href = res.data.checkout_url
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || 'Failed to start payment. Please try again.')
       setLoading(false)
     }
   }
@@ -104,7 +102,7 @@ export default function ContributeModal({ circleId, targetAmount = 25, onSuccess
               {error && <p className="text-xs text-red-500 mb-3">{error}</p>}
 
               <Button onClick={handleSubmit} disabled={loading} className="w-full gap-2" size="lg">
-                {loading ? 'Contributing...' : `Contribute $${amount || '...'}`}
+                {loading ? 'Redirecting to payment...' : `Pay $${amount || '...'} via Stripe`}
               </Button>
             </>
           )}

@@ -40,6 +40,8 @@ export const completeStep = (sessionId: string, stepId: string) =>
 export const getPool = (circleId: string) => api.get(`/circles/${circleId}/pool`)
 export const contribute = (circleId: string, amount: number) =>
   api.post(`/circles/${circleId}/pool/contribute`, { amount })
+export const createCheckoutSession = (circleId: string, amount: number) =>
+  api.post(`/circles/${circleId}/pool/checkout`, { amount, circle_id: circleId })
 export const requestFunds = (circleId: string, data: { amount: number; reason: string; crisis_type: string }) =>
   api.post(`/circles/${circleId}/pool/request`, data)
 export const voteFunds = (circleId: string, data: { request_id: string; vote: boolean }) =>

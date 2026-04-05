@@ -15,7 +15,7 @@ export default function PassbookPage() {
   const selected = circles.find(c => c.id === selectedId)
 
   return (
-    <div className="p-6 lg:p-8 max-w-3xl mx-auto">
+    <div className="p-6 lg:p-8">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <div className="w-10 h-10 bg-[#CC0000] rounded-xl flex items-center justify-center shadow-sm">

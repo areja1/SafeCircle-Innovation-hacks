@@ -194,6 +194,161 @@ def request_funds(
     return result
 
 
+@router.get("/circles/{circle_id}/analytics")
+def get_analytics(circle_id: str, current_user: dict = Depends(get_current_user)):
+    """Return analytics data for a circle's emergency pool."""
+    db = get_db()
+    user_id = current_user["id"]
+    _verify_membership(circle_id, user_id)
+
+    pool = get_pool_for_circle(circle_id)
+    pool_id = pool["id"]
+
+    # --- Raw data pulls ---
+    contributions_res = (
+        db.table("pool_contributions")
+        .select("id, user_id, amount, contributed_at")
+        .eq("pool_id", pool_id)
+        .execute()
+    )
+    contributions = contributions_res.data or []
+
+    fund_requests_res = (
+        db.table("fund_requests")
+        .select("id, requested_by, amount, status, created_at")
+        .eq("pool_id", pool_id)
+        .execute()
+    )
+    fund_requests = fund_requests_res.data or []
+
+    members_res = (
+        db.table("circle_members")
+        .select("user_id")
+        .eq("circle_id", circle_id)
+        .execute()
+    )
+    members = members_res.data or []
+    total_members = len(members)
+
+    # --- Member names from profiles ---
+    member_profiles = {}
+    for m in members:
+        uid = m["user_id"]
+        profile = (
+            db.table("profiles")
+            .select("full_name")
+            .eq("id", uid)
+            .maybe_single()
+            .execute()
+        )
+        member_profiles[uid] = profile.data["full_name"] if profile.data else "Unknown"
+
+    # --- Risk scores per member ---
+    risk_scores_list = []
+    risk_score_values = []
+    for m in members:
+        uid = m["user_id"]
+        survey = (
+            db.table("risk_surveys")
+            .select("risk_score")
+            .eq("circle_id", circle_id)
+            .eq("user_id", uid)
+            .maybe_single()
+            .execute()
+        )
+        score = survey.data["risk_score"] if (survey and survey.data) else None
+        name = member_profiles.get(uid, "Unknown")
+        if score is not None:
+            risk_scores_list.append({"name": name, "score": score})
+            risk_score_values.append(score)
+
+    avg_risk_score = round(sum(risk_score_values) / len(risk_score_values)) if risk_score_values else 0
+
+    # --- Summary ---
+    total_contributed = sum(c["amount"] for c in contributions) // 100
+    approved_requests = [r for r in fund_requests if r["status"] in ("approved", "released")]
+    pending_requests = [r for r in fund_requests if r["status"] == "pending"]
+    total_withdrawn = sum(r["amount"] for r in approved_requests) // 100
+    current_balance = total_contributed - total_withdrawn
+    approved_count = len(approved_requests)
+    pending_count = len(pending_requests)
+
+    summary = {
+        "total_contributed": total_contributed,
+        "total_withdrawn": total_withdrawn,
+        "current_balance": current_balance,
+        "total_members": total_members,
+        "avg_risk_score": avg_risk_score,
+        "approved_requests": approved_count,
+        "pending_requests": pending_count,
+    }
+
+    # --- Pool growth (running balance) ---
+    events = []
+    for c in contributions:
+        events.append({
+            "ts": c["contributed_at"],
+            "delta": c["amount"] // 100,
+        })
+    for r in approved_requests:
+        events.append({
+            "ts": r["created_at"],
+            "delta": -(r["amount"] // 100),
+        })
+    events.sort(key=lambda x: x["ts"])
+    running = 0
+    pool_growth = []
+    for ev in events:
+        running += ev["delta"]
+        date_str = ev["ts"][:10]  # YYYY-MM-DD
+        pool_growth.append({"date": date_str, "balance": running})
+
+    # --- Contributions by member ---
+    contrib_by_member: dict = {}
+    for c in contributions:
+        uid = c["user_id"]
+        name = member_profiles.get(uid, "Unknown")
+        contrib_by_member[name] = contrib_by_member.get(name, 0) + (c["amount"] // 100)
+    contributions_by_member = [
+        {"name": n, "amount": a} for n, a in contrib_by_member.items()
+    ]
+
+    # --- Monthly activity ---
+    from collections import defaultdict
+    monthly: dict = defaultdict(lambda: {"contributed": 0, "withdrawn": 0})
+    for c in contributions:
+        from datetime import datetime
+        dt = datetime.fromisoformat(c["contributed_at"].replace("Z", "+00:00"))
+        key = dt.strftime("%b %Y")
+        monthly[key]["contributed"] += c["amount"] // 100
+    for r in approved_requests:
+        from datetime import datetime
+        dt = datetime.fromisoformat(r["created_at"].replace("Z", "+00:00"))
+        key = dt.strftime("%b %Y")
+        monthly[key]["withdrawn"] += r["amount"] // 100
+
+    # Sort chronologically
+    from datetime import datetime as _dt
+    def month_sort_key(k):
+        try:
+            return _dt.strptime(k, "%b %Y")
+        except Exception:
+            return _dt.min
+
+    monthly_activity = [
+        {"month": k, "contributed": v["contributed"], "withdrawn": v["withdrawn"]}
+        for k, v in sorted(monthly.items(), key=lambda x: month_sort_key(x[0]))
+    ]
+
+    return {
+        "summary": summary,
+        "pool_growth": pool_growth,
+        "contributions_by_member": contributions_by_member,
+        "monthly_activity": monthly_activity,
+        "risk_scores": risk_scores_list,
+    }
+
+
 @router.post("/circles/{circle_id}/pool/vote")
 def vote_on_request(
     circle_id: str,

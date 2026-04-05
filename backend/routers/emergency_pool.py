@@ -136,7 +136,7 @@ def vote_on_request(
         .select("id, status, requested_by")
         .eq("id", body.request_id)
         .eq("pool_id", pool["id"])
-        .single()
+        .maybe_single()
         .execute()
     )
 

@@ -8,7 +8,7 @@ def get_pool_for_circle(circle_id: str) -> dict:
         db.table("emergency_pools")
         .select("*")
         .eq("circle_id", circle_id)
-        .single()
+        .maybe_single()
         .execute()
     )
     if not pool.data:
@@ -30,7 +30,7 @@ def contribute_to_pool(pool_id: str, user_id: str, amount_dollars: int) -> dict:
     }).execute()
 
     # Increment pool balance
-    pool = db.table("emergency_pools").select("total_balance").eq("id", pool_id).single().execute()
+    pool = db.table("emergency_pools").select("total_balance").eq("id", pool_id).maybe_single().execute()
     new_balance = pool.data["total_balance"] + amount_cents
     db.table("emergency_pools").update({"total_balance": new_balance}).eq("id", pool_id).execute()
 
@@ -82,7 +82,7 @@ def cast_vote(request_id: str, voter_id: str, vote: bool) -> dict:
         db.table("fund_requests")
         .select("pool_id, amount, votes_needed, votes_received, status")
         .eq("id", request_id)
-        .single()
+        .maybe_single()
         .execute()
     )
     req = request.data
@@ -101,7 +101,7 @@ def cast_vote(request_id: str, voter_id: str, vote: bool) -> dict:
                 db.table("emergency_pools")
                 .select("id, total_balance")
                 .eq("id", req["pool_id"])
-                .single()
+                .maybe_single()
                 .execute()
             )
             new_balance = max(0, pool.data["total_balance"] - req["amount"])

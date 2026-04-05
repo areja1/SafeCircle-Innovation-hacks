@@ -77,7 +77,7 @@ def get_crisis_session(session_id: str, current_user: dict = Depends(get_current
         .select("*")
         .eq("id", session_id)
         .eq("user_id", user_id)
-        .single()
+        .maybe_single()
         .execute()
     )
 
@@ -116,7 +116,7 @@ def complete_step(
         .select("completed_steps")
         .eq("id", session_id)
         .eq("user_id", user_id)
-        .single()
+        .maybe_single()
         .execute()
     )
 

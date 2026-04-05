@@ -35,7 +35,7 @@ def get_circle_members(circle_id: str, current_user: dict = Depends(get_current_
             db.table("profiles")
             .select("full_name, email")
             .eq("id", m["user_id"])
-            .single()
+            .maybe_single()
             .execute()
         )
         survey = (
